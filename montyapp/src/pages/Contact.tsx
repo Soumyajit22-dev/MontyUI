@@ -12,14 +12,14 @@ const Contact = () => {
               <span className="font-script text-accent text-[1.15em]">working on.</span>
             </h1>
             <p className="mt-6 body-lg max-w-md text-muted-foreground">
-              Monty AI is rolling out to research teams and individual authors. Reach out and we'll
+              CitePark is rolling out to research teams and individual authors. Reach out and we'll
               set up your workspace.
             </p>
             <a
-              href="mailto:hello@montyai.com"
+              href="mailto:hello@citepark.com"
               className="mt-8 inline-block font-display text-2xl md:text-3xl text-primary underline decoration-accent decoration-2 underline-offset-8 hover:text-accent transition-colors"
             >
-              hello@montyai.com
+              hello@citepark.com
             </a>
           </div>
 

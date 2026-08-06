@@ -6,7 +6,7 @@ const links = [
   { label: "Research", href: "/#research" },
   { label: "Editor", href: "/#editor" },
   { label: "Manage", href: "/#manage" },
-  { label: "Why Monty", href: "/#why" },
+  { label: "Why CitePark", href: "/#why" },
 ];
 
 export function Navbar() {
@@ -27,7 +27,7 @@ export function Navbar() {
     >
       <div className="container flex items-center justify-between py-4 lg:py-5">
         <Link to="/" className="font-display text-2xl lg:text-[1.75rem] font-semibold tracking-[-0.03em] text-primary hover-fade">
-          monty<span className="text-accent">.</span>
+          citepark<span className="text-accent">.</span>
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">

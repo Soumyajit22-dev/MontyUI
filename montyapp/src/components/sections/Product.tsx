@@ -2,7 +2,7 @@ import product from "@/assets/product.png";
 import team from "@/assets/team.jpg";
 
 const features = [
-  { title: "LaTeX, generated", body: "Prompt Monty for sections, tables, equations or a full skeleton — clean LaTeX, compiled instantly." },
+  { title: "LaTeX, generated", body: "Prompt CitePark for sections, tables, equations or a full skeleton — clean LaTeX, compiled instantly." },
   { title: "Diagrams on demand", body: "Describe a figure and get TikZ or draw.io source you can keep editing, not a flat image." },
   { title: "Code or visual", body: "Switch between the raw source and a visual editor without ever breaking the document." },
   { title: "Reviewed edits", body: "Every AI change arrives as a diff you keep or undo, hunk by hunk." },
@@ -17,7 +17,7 @@ export function Editor() {
             <p className="label-eyebrow text-accent">The editor</p>
             <h2 className="mt-4 display-lg">
               Write the paper.{" "}
-              <span className="font-script text-accent text-[1.15em]">Monty handles LaTeX.</span>
+              <span className="font-script text-accent text-[1.15em]">CitePark handles LaTeX.</span>
             </h2>
           </div>
           <p className="lg:col-span-5 body-lg text-primary-foreground/70">
@@ -29,7 +29,7 @@ export function Editor() {
         <div className="mt-12 overflow-hidden rounded-2xl border border-primary-foreground/10 shadow-elite">
           <img
             src={product}
-            alt="Monty AI editor showing LaTeX source, AI diff suggestions and a compiled PDF preview"
+            alt="CitePark editor showing LaTeX source, AI diff suggestions and a compiled PDF preview"
             loading="lazy"
             className="w-full"
           />
@@ -65,7 +65,7 @@ export function Manage() {
           <p className="label-eyebrow text-accent">Manage</p>
           <h2 className="mt-4 display-lg text-primary">Every project, tracked.</h2>
           <p className="mt-6 body-lg text-muted-foreground">
-            Monty keeps the whole research lifecycle in one place, across as many projects as you
+            CitePark keeps the whole research lifecycle in one place, across as many projects as you
             are running — so nothing lives only in someone's laptop.
           </p>
           <ul className="mt-8 space-y-3">

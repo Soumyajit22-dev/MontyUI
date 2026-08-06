@@ -13,7 +13,7 @@ export function Why() {
           </h2>
           <p className="mt-6 body-lg max-w-lg text-muted-foreground">
             Formatting, chasing references, rebuilding a diagram for the fourth time, hunting for
-            the version that compiled. Monty absorbs all of it, so the hours go back into the
+            the version that compiled. CitePark absorbs all of it, so the hours go back into the
             thinking that actually moves your field forward.
           </p>
           <Link

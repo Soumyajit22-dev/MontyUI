@@ -6,14 +6,14 @@ const steps = [
   {
     n: "01",
     title: "Validate your project",
-    body: "Test the idea before you spend a semester on it. Monty scans the literature, surfaces prior art, and stress-tests your research question against what already exists.",
+    body: "Test the idea before you spend a semester on it. CitePark scans the literature, surfaces prior art, and stress-tests your research question against what already exists.",
     image: library,
     alt: "Two researchers reading and comparing sources at a library desk",
   },
   {
     n: "02",
     title: "Edit with AI",
-    body: "Write in the Monty LaTeX editor — code or visual. Generate LaTeX, build diagrams, and edit your paper programmatically or by prompt, with a live compile beside you.",
+    body: "Write in the CitePark LaTeX editor — code or visual. Generate LaTeX, build diagrams, and edit your paper programmatically or by prompt, with a live compile beside you.",
     image: notes,
     alt: "Student writing notes with a pencil beside an open textbook",
   },

@@ -12,7 +12,7 @@ const columns = [
   {
     title: "Company",
     links: [
-      { label: "Why Monty", href: "/#why" },
+      { label: "Why CitePark", href: "/#why" },
       { label: "Contact", href: "/contact" },
     ],
   },
@@ -25,7 +25,7 @@ export function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-5">
             <p className="font-display text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-primary-foreground/40">
-              monty<span className="text-accent">.</span>
+              citepark<span className="text-accent">.</span>
             </p>
             <p className="mt-4 max-w-xs text-sm text-primary-foreground/70">
               The research OS. Research, edit and manage — all with AI.
@@ -64,7 +64,7 @@ export function Footer() {
         </div>
 
         <p className="mt-14 border-t border-primary-foreground/15 pt-6 text-xs text-primary-foreground/50">
-          © {new Date().getFullYear()} Monty AI. All rights reserved.
+          © {new Date().getFullYear()} CitePark. All rights reserved.
         </p>
       </div>
     </footer>

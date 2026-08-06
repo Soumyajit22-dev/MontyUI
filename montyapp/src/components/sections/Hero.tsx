@@ -7,7 +7,7 @@ export function Hero() {
       <div className="container pt-16 pb-20 lg:pt-24 lg:pb-28">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           <div className="lg:col-span-6">
-            <p className="label-eyebrow text-forest-soft">Monty AI · Research OS</p>
+            <p className="label-eyebrow text-forest-soft">CitePark · Research OS</p>
             <h1 className="mt-5 display-xl text-primary">
               Research. Edit.
               <br />
@@ -40,7 +40,7 @@ export function Hero() {
               <div className="absolute -inset-4 rounded-[2rem] bg-primary/5" aria-hidden />
               <img
                 src={productAsset}
-                alt="Monty AI LaTeX editor with AI-assisted document edits and live PDF preview"
+                alt="CitePark LaTeX editor with AI-assisted document edits and live PDF preview"
                 loading="lazy"
                 className="relative w-full rounded-2xl border border-border/60 shadow-elite"
               />
