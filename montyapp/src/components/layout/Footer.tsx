@@ -1,0 +1,72 @@
+import { Link } from "react-router-dom";
+
+const columns = [
+  {
+    title: "Product",
+    links: [
+      { label: "Research", href: "/#research" },
+      { label: "Editor", href: "/#editor" },
+      { label: "Manage", href: "/#manage" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "Why Monty", href: "/#why" },
+      { label: "Contact", href: "/contact" },
+    ],
+  },
+];
+
+export function Footer() {
+  return (
+    <footer className="bg-primary text-primary-foreground">
+      <div className="container py-16 lg:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+          <div className="lg:col-span-5">
+            <p className="font-display text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-primary-foreground/40">
+              monty<span className="text-accent">.</span>
+            </p>
+            <p className="mt-4 max-w-xs text-sm text-primary-foreground/70">
+              The research OS. Research, edit and manage — all with AI.
+            </p>
+          </div>
+
+          {columns.map((c) => (
+            <div key={c.title} className="lg:col-span-2">
+              <h3 className="label-eyebrow text-primary-foreground/60">{c.title}</h3>
+              <ul className="mt-4 space-y-3">
+                {c.links.map((l) => (
+                  <li key={l.label}>
+                    <a href={l.href} className="text-sm hover:text-accent transition-colors">
+                      {l.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div className="lg:col-span-3">
+            <h3 className="label-eyebrow text-primary-foreground/60">Studio</h3>
+            <p className="mt-4 text-sm text-primary-foreground/80">
+              Built for researchers, everywhere.
+              <br />
+              Find us wherever there's internet.
+            </p>
+            <Link
+              to="/contact"
+              className="mt-6 inline-block rounded-full bg-accent px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-accent-foreground transition-opacity hover:opacity-90"
+            >
+              Get Access
+            </Link>
+          </div>
+        </div>
+
+        <p className="mt-14 border-t border-primary-foreground/15 pt-6 text-xs text-primary-foreground/50">
+          © {new Date().getFullYear()} Monty AI. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  );
+}
