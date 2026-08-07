@@ -55,7 +55,7 @@ export function Footer() {
               Find us wherever there's internet.
             </p>
             <Link
-              to="/contact"
+              to="/signup"
               className="mt-6 inline-block rounded-full bg-accent px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-accent-foreground transition-opacity hover:opacity-90"
             >
               Get Access

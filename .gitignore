@@ -1,0 +1,7 @@
+# Secrets — never commit. Contains the Supabase service role key and DB password.
+.env
+.env.*
+!.env.example
+
+.DS_Store
+node_modules

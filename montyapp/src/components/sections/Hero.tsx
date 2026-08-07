@@ -20,7 +20,7 @@ export function Hero() {
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
               <Link
-                to="/contact"
+                to="/signup"
                 className="rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-accent"
               >
                 Start your project

@@ -42,12 +42,20 @@ export function Navbar() {
           ))}
         </nav>
 
-        <Link
-          to="/contact"
-          className="rounded-full bg-primary px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary-foreground transition-colors hover:bg-accent"
-        >
-          Get Access
-        </Link>
+        <div className="flex items-center gap-3 sm:gap-5">
+          <Link
+            to="/login"
+            className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80 transition-colors hover:text-accent"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/signup"
+            className="rounded-full bg-primary px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary-foreground transition-colors hover:bg-accent"
+          >
+            Get Access
+          </Link>
+        </div>
       </div>
     </header>
   );
