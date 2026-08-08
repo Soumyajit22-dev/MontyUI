@@ -1,0 +1,14 @@
+
+# This site has no server of its own, so the two calls that must hold the
+# Razorpay key secret run as Edge Functions on the Supabase project that
+# already backs auth.
+project_id = "oumzszymeewcyyklkpsl"
+
+# Both functions act on behalf of a signed-in account — the order is stamped
+# with the payer's id and the upgrade is applied to it — so the gateway should
+# turn away anything without a real access token.
+[functions.create-order]
+verify_jwt = true
+
+[functions.verify-payment]
+verify_jwt = true

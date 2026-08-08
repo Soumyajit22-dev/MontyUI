@@ -2,6 +2,53 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Payments (Razorpay)
+
+The site is static, so the two calls that need the Razorpay key secret run as
+Supabase Edge Functions on the project that already backs auth:
+
+| Function | What it does |
+| --- | --- |
+| `supabase/functions/create-order` | Prices the plan server-side and creates a Razorpay order stamped with the payer's user id |
+| `supabase/functions/verify-payment` | Checks the HMAC-SHA256 signature, re-reads the order from Razorpay, then marks the account Premium |
+
+Premium is sold to an account, never to an anonymous visitor, so **Get Premium**
+opens a sign-in dialog first and resumes checkout once there's a session. Both
+functions run with `verify_jwt = true` and refuse a caller they can't identify.
+
+The upgrade is written to the columns the product app already reads —
+`user_usage.is_pro`, `subscription_status`, `current_period_start` /
+`_end`, `cancel_at_period_end` — for a 30-day period. The Razorpay references go
+on the user's `app_metadata` (`razorpay_order_id`, `razorpay_payment_id`,
+`premium_until`), which is server-writable only and travels in the JWT; the
+`stripe_*` columns are left alone. No schema change was needed. After a
+successful payment the visitor is handed off to `app.citepark.com`.
+
+The browser only ever sees `VITE_RAZORPAY_KEY_ID` (`.env`). The secret lives in
+`supabase/.env.local`, which is gitignored and never bundled.
+
+First-time setup:
+
+```sh
+supabase login
+supabase link --project-ref oumzszymeewcyyklkpsl
+supabase secrets set --env-file supabase/.env.local
+supabase functions deploy create-order verify-payment
+```
+
+Then `npm run dev` and press **Get Premium** in the pricing section. You'll be
+asked to sign in if you aren't already. Test-mode cards are listed at
+https://razorpay.com/docs/payments/payments/test-card-details/ (UPI
+`success@razorpay` is the quickest). Prices live in the `PLANS` map inside
+`create-order/index.ts` — change them there, not in the browser.
+
+To confirm the upgrade landed:
+
+```sh
+supabase functions logs verify-payment
+# then check user_usage.is_pro for that user_id
+```
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)

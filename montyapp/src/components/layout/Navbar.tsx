@@ -7,6 +7,7 @@ const links = [
   { label: "Editor", href: "/#editor" },
   { label: "Manage", href: "/#manage" },
   { label: "Why CitePark", href: "/#why" },
+  { label: "Pricing", href: "/#pricing" },
 ];
 
 export function Navbar() {

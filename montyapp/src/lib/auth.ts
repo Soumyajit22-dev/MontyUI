@@ -1,4 +1,4 @@
-import { AuthError } from "@supabase/supabase-js";
+import { AuthError, type User } from "@supabase/supabase-js";
 import { APP_URL, supabase } from "./supabase";
 
 /** Signup either lands the user straight in, or parks them until they confirm their email. */
@@ -72,6 +72,19 @@ export async function signUpWithPassword(
 export async function signInWithPassword(email: string, password: string): Promise<void> {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
+}
+
+/**
+ * The signed-in user, read from the session already in localStorage — no
+ * network round trip, so it is cheap enough to call on a button press.
+ */
+export async function getSessionUser(): Promise<User | null> {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user ?? null;
+}
+
+export async function signOut(): Promise<void> {
+  await supabase.auth.signOut();
 }
 
 /** Hand the visitor off to the product app, which runs its own auth middleware. */
