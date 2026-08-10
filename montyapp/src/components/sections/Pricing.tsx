@@ -9,8 +9,8 @@ import { checkoutErrorMessage, startCheckout } from "@/lib/razorpay";
 /** One shape for both CTAs so the paid one doesn't drift from the free one. */
 function ctaClass(featured: boolean): string {
   return `inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${featured
-      ? "bg-accent text-accent-foreground hover:bg-ember-soft"
-      : "bg-primary text-primary-foreground hover:bg-accent"
+    ? "bg-accent text-accent-foreground hover:bg-ember-soft"
+    : "bg-primary text-primary-foreground hover:bg-accent"
     }`;
 }
 
@@ -208,8 +208,8 @@ export function Pricing() {
       <div className="container">
         <p className="label-eyebrow text-accent">Pricing</p>
         <h2 className="mt-4 display-lg max-w-2xl text-primary">
-          Start free. Upgrade when{" "}
-          <span className="font-script text-accent text-[1.15em]">the work grows.</span>
+          Spending on Academics {"   "} <br />
+          <span className="font-script text-accent text-[1.15em]">is never a waste</span>
         </h2>
 
         <PlanGrid className="mt-14" />
@@ -222,6 +222,6 @@ export function Pricing() {
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-    </section>
+    </section >
   );
 }

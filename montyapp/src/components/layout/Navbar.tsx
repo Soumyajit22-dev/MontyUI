@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 const links = [
   { label: "Research", href: "/#research" },
   { label: "Editor", href: "/#editor" },
+  { label: "References", href: "/#references" },
   { label: "Manage", href: "/#manage" },
   { label: "Why CitePark", href: "/#why" },
   { label: "Pricing", href: "/pricing" },

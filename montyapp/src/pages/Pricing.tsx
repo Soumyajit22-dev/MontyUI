@@ -36,7 +36,7 @@ const faqs = [
   },
   {
     q: "Something went wrong with a payment.",
-    a: "Write to hello@citepark.com with the reference shown at checkout and we will sort it out.",
+    a: "Write to imsoumyajitmondal@gmail.com with the reference shown at checkout and we will sort it out.",
   },
 ];
 
@@ -47,13 +47,11 @@ const Pricing = () => {
         <div className="container">
           <p className="label-eyebrow text-accent">Pricing</p>
           <h1 className="mt-4 display-lg max-w-3xl text-primary">
-            Start free. Upgrade when{" "}
-            <span className="font-script text-accent text-[1.15em]">the work grows.</span>
+            Spending on Academics {"   "}
+            <span className="font-script text-accent text-[1.15em]">is never a waste.</span>
           </h1>
           <p className="mt-6 body-lg max-w-xl text-muted-foreground">
-            One account across citepark.com and the CitePark app. No trials to remember, no
-            contracts — move up when a second project shows up, and everything you have written
-            comes with you.
+            Start with Free. Upgrade when you realise.
           </p>
 
           <PlanGrid className="mt-14" />
@@ -95,10 +93,10 @@ const Pricing = () => {
             <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
               Anything else, write to{" "}
               <a
-                href="mailto:hello@citepark.com"
+                href="mailto:imsoumyajitmondal@gmail.com"
                 className="font-medium text-primary underline decoration-accent decoration-2 underline-offset-4 hover:text-accent"
               >
-                hello@citepark.com
+                imsoumyajitmondal@gmail.com
               </a>
               .
             </p>

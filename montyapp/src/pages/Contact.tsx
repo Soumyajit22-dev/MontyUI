@@ -16,10 +16,10 @@ const Contact = () => {
               set up your workspace.
             </p>
             <a
-              href="mailto:hello@citepark.com"
+              href="mailto:imsoumyajitmondal@gmail.com"
               className="mt-8 inline-block font-display text-2xl md:text-3xl text-primary underline decoration-accent decoration-2 underline-offset-8 hover:text-accent transition-colors"
             >
-              hello@citepark.com
+              imsoumyajitmondal@gmail.com
             </a>
           </div>
 
