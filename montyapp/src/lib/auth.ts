@@ -53,7 +53,8 @@ export async function signUpWithPassword(
     options: {
       data: { full_name: fullName },
       // The confirmation link drops them on the product app, not back here.
-      emailRedirectTo: `${APP_URL}/login`,
+      // Its root is the sign-in surface; `/login` is not a route over there.
+      emailRedirectTo: `${APP_URL}/`,
     },
   });
 
