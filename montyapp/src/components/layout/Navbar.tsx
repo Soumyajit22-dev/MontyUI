@@ -7,7 +7,7 @@ const links = [
   { label: "Editor", href: "/#editor" },
   { label: "Manage", href: "/#manage" },
   { label: "Why CitePark", href: "/#why" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Pricing", href: "/pricing" },
 ];
 
 export function Navbar() {
@@ -32,15 +32,21 @@ export function Navbar() {
         </Link>
 
         <nav className="hidden md:flex items-center gap-8">
-          {links.map((l) => (
-            <a
-              key={l.label}
-              href={l.href}
-              className="text-sm font-medium text-primary/80 hover:text-accent transition-colors"
-            >
-              {l.label}
-            </a>
-          ))}
+          {links.map((l) => {
+            const className =
+              "text-sm font-medium text-primary/80 hover:text-accent transition-colors";
+            // Section links are anchors on the landing page; a page of its own
+            // routes client-side instead of reloading the site.
+            return l.href.includes("#") ? (
+              <a key={l.label} href={l.href} className={className}>
+                {l.label}
+              </a>
+            ) : (
+              <Link key={l.label} to={l.href} className={className}>
+                {l.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3 sm:gap-5">

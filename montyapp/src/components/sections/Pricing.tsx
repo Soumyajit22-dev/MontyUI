@@ -1,17 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Check, Loader2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { SignInDialog } from "@/components/auth/SignInDialog";
-import { getSessionUser, goToApp } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
+import { PREMIUM_SUCCESS_PATH, rememberPurchase } from "@/lib/premium";
 import { checkoutErrorMessage, startCheckout } from "@/lib/razorpay";
 
 /** One shape for both CTAs so the paid one doesn't drift from the free one. */
 function ctaClass(featured: boolean): string {
-  return `inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-    featured
+  return `inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${featured
       ? "bg-accent text-accent-foreground hover:bg-ember-soft"
       : "bg-primary text-primary-foreground hover:bg-accent"
-  }`;
+    }`;
 }
 
 const plans = [
@@ -50,36 +50,38 @@ const plans = [
   },
 ];
 
-/** How long the confirmation is left up before the hand-off to the app. */
-const HANDOFF_DELAY_MS = 1800;
-
 /**
  * Opens Razorpay checkout for Premium. The price is set server-side, and so is
  * the upgrade — the payment has to land on an account, so an unrecognised
  * visitor signs in first and the checkout resumes from there.
+ *
+ * A paid checkout ends on the confirmation page rather than here: the hand-off
+ * to the app belongs on a page of its own, where it survives being reloaded and
+ * waits for the visitor instead of a timer.
  */
 function PremiumCheckoutButton({ label, featured }: { label: string; featured: boolean }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentId, setPaymentId] = useState<string | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const runCheckout = async () => {
     setError(null);
     setPending(true);
     try {
       const outcome = await startCheckout("premium");
-      // A dismissed modal is not a failure — leave the button as it was.
       if (outcome.status === "paid") {
-        setPaymentId(outcome.paymentId);
-        // The account is Premium by the time this resolves; let them read the
-        // confirmation, then hand them to the app the same way signup does.
-        window.setTimeout(goToApp, HANDOFF_DELAY_MS);
+        // The account is Premium by the time this resolves. Leave the button
+        // spinning — this component is on its way out with the page.
+        rememberPurchase(outcome.paymentId);
+        navigate(PREMIUM_SUCCESS_PATH, { state: { paymentId: outcome.paymentId } });
+        return;
       }
+      // A dismissed modal is not a failure — leave the button as it was.
+      setPending(false);
     } catch (err) {
       setError(checkoutErrorMessage(err));
-    } finally {
       setPending(false);
     }
   };
@@ -92,17 +94,6 @@ function PremiumCheckoutButton({ label, featured }: { label: string; featured: b
     setSignedInAs(user?.email ?? null);
     setSignInOpen(true);
   };
-
-  if (paymentId) {
-    return (
-      <div className="mt-auto rounded-2xl bg-primary-foreground/10 p-5 text-sm leading-relaxed text-primary-foreground/90">
-        <p className="font-semibold">Payment received — you're Premium.</p>
-        <p className="mt-1 text-primary-foreground/70">
-          Reference {paymentId}. Taking you to CitePark…
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="mt-auto">
@@ -136,6 +127,81 @@ function PremiumCheckoutButton({ label, featured }: { label: string; featured: b
   );
 }
 
+/**
+ * The two plans, checkout wiring included. Lives apart from the section around
+ * it so the landing page and /pricing show the same cards rather than two
+ * copies that drift.
+ */
+export function PlanGrid({ className = "" }: { className?: string }) {
+  return (
+    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${className}`}>
+      {plans.map((p) => (
+        <div
+          key={p.name}
+          className={
+            p.featured
+              ? "relative flex flex-col rounded-2xl bg-primary text-primary-foreground p-8 lg:p-10 shadow-elite"
+              : "relative flex flex-col rounded-2xl border border-border bg-background p-8 lg:p-10 shadow-soft"
+          }
+        >
+          {p.featured && (
+            <span className="absolute right-8 top-8 lg:right-10 lg:top-10 rounded-full bg-accent px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-accent-foreground">
+              Most popular
+            </span>
+          )}
+
+          <h3 className={`text-2xl font-semibold ${p.featured ? "" : "text-primary"}`}>
+            {p.name}
+          </h3>
+          <p
+            className={`mt-2 text-sm leading-relaxed ${p.featured ? "text-primary-foreground/70" : "text-muted-foreground"
+              }`}
+          >
+            {p.body}
+          </p>
+
+          <div className="mt-8 flex items-baseline gap-2">
+            <span
+              className={`font-display text-5xl lg:text-6xl font-semibold tracking-[-0.03em] ${p.featured ? "" : "text-primary"
+                }`}
+            >
+              {p.price}
+            </span>
+            <span
+              className={`text-sm ${p.featured ? "text-primary-foreground/60" : "text-muted-foreground"
+                }`}
+            >
+              {p.period}
+            </span>
+          </div>
+
+          <ul className="mt-8 mb-10 space-y-3">
+            {p.features.map((f) => (
+              <li
+                key={f}
+                className={`flex items-start gap-3 text-base ${p.featured ? "text-primary-foreground/90" : "text-primary"
+                  }`}
+              >
+                <Check className="mt-1 h-4 w-4 shrink-0 text-accent" aria-hidden />
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+
+          {p.paid ? (
+            <PremiumCheckoutButton label={p.cta} featured={p.featured} />
+          ) : (
+            <Link to="/signup" className={`mt-auto ${ctaClass(p.featured)}`}>
+              {p.cta}
+            </Link>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/** The pricing block on the landing page. /pricing is the page-sized version. */
 export function Pricing() {
   return (
     <section id="pricing" className="bg-paper py-20 lg:py-28">
@@ -145,81 +211,16 @@ export function Pricing() {
           Start free. Upgrade when{" "}
           <span className="font-script text-accent text-[1.15em]">the work grows.</span>
         </h2>
-        <p className="mt-6 body-lg max-w-lg text-muted-foreground">
-          No trials that expire mid-draft. Pick the plan that matches how much you are running, and
-          change it whenever that changes.
-        </p>
 
-        <div className="mt-14 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {plans.map((p) => (
-            <div
-              key={p.name}
-              className={
-                p.featured
-                  ? "relative flex flex-col rounded-2xl bg-primary text-primary-foreground p-8 lg:p-10 shadow-elite"
-                  : "relative flex flex-col rounded-2xl border border-border bg-background p-8 lg:p-10 shadow-soft"
-              }
-            >
-              {p.featured && (
-                <span className="absolute right-8 top-8 lg:right-10 lg:top-10 rounded-full bg-accent px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-accent-foreground">
-                  Most popular
-                </span>
-              )}
+        <PlanGrid className="mt-14" />
 
-              <h3
-                className={`text-2xl font-semibold ${p.featured ? "" : "text-primary"}`}
-              >
-                {p.name}
-              </h3>
-              <p
-                className={`mt-2 text-sm leading-relaxed ${
-                  p.featured ? "text-primary-foreground/70" : "text-muted-foreground"
-                }`}
-              >
-                {p.body}
-              </p>
-
-              <div className="mt-8 flex items-baseline gap-2">
-                <span
-                  className={`font-display text-5xl lg:text-6xl font-semibold tracking-[-0.03em] ${
-                    p.featured ? "" : "text-primary"
-                  }`}
-                >
-                  {p.price}
-                </span>
-                <span
-                  className={`text-sm ${
-                    p.featured ? "text-primary-foreground/60" : "text-muted-foreground"
-                  }`}
-                >
-                  {p.period}
-                </span>
-              </div>
-
-              <ul className="mt-8 mb-10 space-y-3">
-                {p.features.map((f) => (
-                  <li
-                    key={f}
-                    className={`flex items-start gap-3 text-base ${
-                      p.featured ? "text-primary-foreground/90" : "text-primary"
-                    }`}
-                  >
-                    <Check className="mt-1 h-4 w-4 shrink-0 text-accent" aria-hidden />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {p.paid ? (
-                <PremiumCheckoutButton label={p.cta} featured={p.featured} />
-              ) : (
-                <Link to="/signup" className={`mt-auto ${ctaClass(p.featured)}`}>
-                  {p.cta}
-                </Link>
-              )}
-            </div>
-          ))}
-        </div>
+        <Link
+          to="/pricing"
+          className="mt-10 inline-flex items-center gap-2 text-sm font-semibold text-primary underline decoration-accent decoration-2 underline-offset-8 transition-colors hover:text-accent"
+        >
+          See everything in both plans
+          <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </section>
   );

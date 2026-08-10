@@ -7,7 +7,7 @@ const columns = [
       { label: "Research", href: "/#research" },
       { label: "Editor", href: "/#editor" },
       { label: "Manage", href: "/#manage" },
-      { label: "Pricing", href: "/#pricing" },
+      { label: "Pricing", href: "/pricing" },
     ],
   },
   {
@@ -39,9 +39,16 @@ export function Footer() {
               <ul className="mt-4 space-y-3">
                 {c.links.map((l) => (
                   <li key={l.label}>
-                    <a href={l.href} className="text-sm hover:text-accent transition-colors">
-                      {l.label}
-                    </a>
+                    {/* Anchors jump within the landing page; the rest are routes. */}
+                    {l.href.includes("#") ? (
+                      <a href={l.href} className="text-sm hover:text-accent transition-colors">
+                        {l.label}
+                      </a>
+                    ) : (
+                      <Link to={l.href} className="text-sm hover:text-accent transition-colors">
+                        {l.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
