@@ -79,6 +79,15 @@ const Login = () => {
           {...register("password", { required: "Please enter your password." })}
         />
 
+        <div className="-mt-2 flex justify-end">
+          <Link
+            to="/forgot-password"
+            className="text-xs font-medium text-muted-foreground underline decoration-border decoration-1 underline-offset-4 transition-colors hover:text-primary hover:decoration-accent"
+          >
+            Forgot your password?
+          </Link>
+        </div>
+
         {formError && (
           <p role="alert" className="text-sm text-destructive">
             {formError}
