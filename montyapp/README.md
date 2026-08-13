@@ -44,18 +44,22 @@ is the backstop, not the fix.
 
 ### Where a Google sign-in ends up
 
-| Case | Destination |
-| --- | --- |
-| Was mid-purchase (`?next=`) | Back to that page, so checkout can resume |
-| Google created the account just now | `/welcome`, then the app |
-| Account already existed | Straight to `app.citepark.com` |
+Google has one endpoint for both buttons — it signs the visitor in and creates
+the account if none existed. So `/signup` and `/login` each stamp an `intent`
+on the callback URL, and `/auth/callback` compares what they meant to do with
+what actually happened:
 
-"Google created the account" is not the same as "has a google identity":
-Supabase links Google onto an existing user when the email matches, so the test
-is whether the identity and the user were created in the same instant. The
-welcome step then sets `welcomed` in user metadata so it only ever runs once —
-deliberately *not* `user_usage.onboarding_completed`, which the product app's
-own questionnaire owns.
+| Pressed | Account | Destination |
+| --- | --- | --- |
+| either, mid-purchase (`?next=`) | either | back to that page, so checkout survives |
+| Sign up | did not exist | `app.citepark.com` |
+| Sign up | already existed | `/login?existing=1`, which explains the detour |
+| Sign in | either | `app.citepark.com` |
+
+"The account already existed" is not the same as "the user has a password".
+Supabase links a Google identity onto an existing user when the email matches,
+so the test is whether the identity and the user row were created in the same
+instant — a linked identity shows up days after the account it joins.
 
 No new environment variables: the client id lives on the Supabase project, not
 in the bundle.

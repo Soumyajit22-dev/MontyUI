@@ -3,12 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import {
-  WELCOME_PATH,
+  EXISTING_ACCOUNT_PARAM,
   authErrorMessage,
   completeGoogleSignIn,
   getSessionUser,
   goToApp,
-  hasBeenWelcomed,
+  intentFromUrl,
   isGoogleNativeAccount,
   redirectTargetFromUrl,
 } from "@/lib/auth";
@@ -38,8 +38,9 @@ const AuthCallback = () => {
 
     (async () => {
       // Read before redeeming — exchanging the code rewrites nothing, but the
-      // navigate below drops the query string this lives in.
+      // navigate below drops the query string these live in.
       const next = redirectTargetFromUrl();
+      const intent = intentFromUrl();
 
       try {
         const outcome = await completeGoogleSignIn();
@@ -50,8 +51,8 @@ const AuthCallback = () => {
           return;
         }
 
-        // Someone mid-purchase goes back to what they were buying, whether or
-        // not the account is new — the welcome step would lose the checkout.
+        // Someone mid-purchase goes back to what they were buying, whichever
+        // button they pressed — anything else loses the checkout.
         if (next) {
           navigate(next, { replace: true });
           return;
@@ -60,13 +61,14 @@ const AuthCallback = () => {
         const user = await getSessionUser();
         if (!active) return;
 
-        if (user && isGoogleNativeAccount(user) && !hasBeenWelcomed(user)) {
-          navigate(WELCOME_PATH, { replace: true });
+        // They asked to sign up and the account turned out to already exist.
+        // Google signed them in anyway, so this is a correction rather than a
+        // failure: /login says so, and offers to carry on.
+        if (intent === "signup" && user && !isGoogleNativeAccount(user)) {
+          navigate(`/login?${EXISTING_ACCOUNT_PARAM}=1`, { replace: true });
           return;
         }
 
-        // An account that predates this sign-in already has everything the
-        // welcome step would ask for.
         goToApp();
       } catch (err) {
         if (!active) return;

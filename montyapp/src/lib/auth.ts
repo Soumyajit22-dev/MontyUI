@@ -196,17 +196,28 @@ function safeNext(next: string | null): string | null {
 }
 
 /**
+ * Which button was pressed. Google itself draws no such distinction — there is
+ * one endpoint, and it creates the account when none exists — so the only way
+ * the callback can know what the visitor believed they were doing is to carry
+ * it across the round trip and compare it with what actually happened.
+ */
+export type GoogleIntent = "signup" | "signin";
+
+interface GoogleOptions {
+  /** A path on this site to return to, for a visitor mid-purchase. */
+  next?: string;
+  intent?: GoogleIntent;
+}
+
+/**
  * Hands the visitor to Google's account chooser. Returns only if the redirect
  * failed to start — on success the browser has already left the page.
- *
- * `next` is where the callback should drop them afterwards: a path on this site
- * for a visitor who was in the middle of something (buying, typically), or
- * nothing at all to send them through to the product app.
  */
-export async function signInWithGoogle(next?: string): Promise<void> {
+export async function signInWithGoogle({ next, intent }: GoogleOptions = {}): Promise<void> {
   const callback = new URL(OAUTH_CALLBACK_PATH, window.location.origin);
   const target = safeNext(next ?? null);
   if (target) callback.searchParams.set("next", target);
+  if (intent) callback.searchParams.set("intent", intent);
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -222,6 +233,12 @@ export async function signInWithGoogle(next?: string): Promise<void> {
   if (error) throw error;
 }
 
+/** What the visitor pressed, as recorded on the way out to Google. */
+export function intentFromUrl(): GoogleIntent | null {
+  const intent = new URLSearchParams(window.location.search).get("intent");
+  return intent === "signup" || intent === "signin" ? intent : null;
+}
+
 /** Redeems the credentials Google's redirect left on the callback page. */
 export function completeGoogleSignIn(): Promise<RedirectOutcome> {
   return consumeAuthRedirect("That sign-in link is no longer valid.");
@@ -231,9 +248,6 @@ export function completeGoogleSignIn(): Promise<RedirectOutcome> {
 export function redirectTargetFromUrl(): string | null {
   return safeNext(new URLSearchParams(window.location.search).get("next"));
 }
-
-/** Where a Google account that has never been here before is sent. */
-export const WELCOME_PATH = "/welcome";
 
 /**
  * Whether Google created this account, as opposed to signing in to one that
@@ -254,24 +268,8 @@ export function isGoogleNativeAccount(user: User): boolean {
   return Number.isFinite(gap) && gap < 10_000;
 }
 
-/**
- * Whether this account has already been through the welcome step.
- *
- * Kept in user metadata rather than `user_usage.onboarding_completed`: that
- * column belongs to the product app's own questionnaire, and claiming it here
- * would tell the app someone had answered questions they were never asked.
- */
-export function hasBeenWelcomed(user: User): boolean {
-  return user.user_metadata?.welcomed === true;
-}
-
-/** Records the visitor's name and closes the welcome step for good. */
-export async function completeWelcome(fullName: string): Promise<void> {
-  const { error } = await supabase.auth.updateUser({
-    data: { full_name: fullName, welcomed: true },
-  });
-  if (error) throw error;
-}
+/** Tells /login it was reached by someone who tried to sign *up* with Google. */
+export const EXISTING_ACCOUNT_PARAM = "existing";
 
 /** Applies the new password to the account the current session belongs to. */
 export async function updatePassword(password: string): Promise<void> {

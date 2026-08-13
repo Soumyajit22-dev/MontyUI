@@ -109,7 +109,11 @@ const SignUp = () => {
       {/* Google verifies the address itself, so this route skips the
           confirmation email the form below has to send. */}
       <div className="space-y-6">
-        <GoogleButton label="Sign up with Google" disabled={isSubmitting} />
+        <GoogleButton
+          intent="signup"
+          label="Sign up with Google"
+          disabled={isSubmitting}
+        />
         <AuthDivider />
       </div>
 

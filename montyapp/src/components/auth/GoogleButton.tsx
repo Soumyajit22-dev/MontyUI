@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { authErrorMessage, signInWithGoogle } from "@/lib/auth";
+import { authErrorMessage, signInWithGoogle, type GoogleIntent } from "@/lib/auth";
 
 /** Google's four-colour mark. Their brand terms require it be shown unaltered. */
 function GoogleMark() {
@@ -29,6 +29,8 @@ function GoogleMark() {
 interface GoogleButtonProps {
   /** Path on this site to return to. Omitted means "carry on to the app". */
   next?: string;
+  /** What the visitor thinks they are doing, for the callback to check. */
+  intent?: GoogleIntent;
   /** Completes "Continue with Google" — the label, minus the provider. */
   label?: string;
   disabled?: boolean;
@@ -41,6 +43,7 @@ interface GoogleButtonProps {
  */
 export function GoogleButton({
   next,
+  intent,
   label = "Continue with Google",
   disabled = false,
 }: GoogleButtonProps) {
@@ -51,7 +54,7 @@ export function GoogleButton({
     setError(null);
     setLeaving(true);
     try {
-      await signInWithGoogle(next);
+      await signInWithGoogle({ next, intent });
     } catch (err) {
       setError(authErrorMessage(err));
       setLeaving(false);
