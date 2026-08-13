@@ -16,16 +16,46 @@ Enabling it takes config in two places:
 
 | Field | Value |
 | --- | --- |
-| Authorized JavaScript origins | `https://citepark.com`, `http://localhost:5173` |
+| Authorized JavaScript origins | `https://www.citepark.com`, `https://citepark.com`, `http://localhost:5173` |
 | Authorized redirect URI | `https://oumzszymeewcyyklkpsl.supabase.co/auth/v1/callback` |
 
-The redirect URI is Supabase's, not ours — Google returns to Supabase, which
-then returns to `/auth/callback` here.
+The redirect URI is **Supabase's, not ours** — Google returns to Supabase, which
+then returns to `/auth/callback` here. Putting this site's URL in that field is
+what produces `Error 400: redirect_uri_mismatch`; Google never redirects here
+directly. It must match character for character, with no trailing slash.
 
 **Supabase dashboard** — Authentication → Providers → Google: enable it and
-paste the client ID and secret. Then under URL Configuration add both
-`https://citepark.com/auth/callback` and `http://localhost:5173/auth/callback`
-to the redirect allow list, or the callback is refused.
+paste the client ID and secret. Then under URL Configuration add
+`https://www.citepark.com/auth/callback`, `https://citepark.com/auth/callback`,
+and `http://localhost:5173/auth/callback` to the redirect allow list, or the
+hop back from Supabase is refused. The site is served from the `www` host, so
+that one is the entry that actually matters in production.
+
+**Site URL matters too.** When `redirect_to` does not match the allow list,
+Supabase silently ignores it and sends the visitor to the Site URL instead,
+with the session tokens still attached. If Site URL points at a page that
+redeems tokens — `/reset-password` did — a Google sign-in lands there holding a
+valid session and is offered a new-password form. Site URL should be the site
+root, and `/auth/callback` must be in the allow list.
+
+`/reset-password` now refuses credentials that are not stamped `type=recovery`,
+so a misrouted sign-in can no longer be mistaken for a recovery link, but that
+is the backstop, not the fix.
+
+### Where a Google sign-in ends up
+
+| Case | Destination |
+| --- | --- |
+| Was mid-purchase (`?next=`) | Back to that page, so checkout can resume |
+| Google created the account just now | `/welcome`, then the app |
+| Account already existed | Straight to `app.citepark.com` |
+
+"Google created the account" is not the same as "has a google identity":
+Supabase links Google onto an existing user when the email matches, so the test
+is whether the identity and the user were created in the same instant. The
+welcome step then sets `welcomed` in user metadata so it only ever runs once —
+deliberately *not* `user_usage.onboarding_completed`, which the product app's
+own questionnaire owns.
 
 No new environment variables: the client id lives on the Supabase project, not
 in the bundle.

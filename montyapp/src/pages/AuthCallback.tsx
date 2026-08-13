@@ -3,9 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import {
+  WELCOME_PATH,
   authErrorMessage,
   completeGoogleSignIn,
+  getSessionUser,
   goToApp,
+  hasBeenWelcomed,
+  isGoogleNativeAccount,
   redirectTargetFromUrl,
 } from "@/lib/auth";
 
@@ -46,10 +50,23 @@ const AuthCallback = () => {
           return;
         }
 
+        // Someone mid-purchase goes back to what they were buying, whether or
+        // not the account is new — the welcome step would lose the checkout.
         if (next) {
           navigate(next, { replace: true });
           return;
         }
+
+        const user = await getSessionUser();
+        if (!active) return;
+
+        if (user && isGoogleNativeAccount(user) && !hasBeenWelcomed(user)) {
+          navigate(WELCOME_PATH, { replace: true });
+          return;
+        }
+
+        // An account that predates this sign-in already has everything the
+        // welcome step would ask for.
         goToApp();
       } catch (err) {
         if (!active) return;

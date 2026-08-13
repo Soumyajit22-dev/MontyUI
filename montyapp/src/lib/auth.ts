@@ -117,10 +117,20 @@ export type RecoveryOutcome = RedirectOutcome;
  * shapes are handled: implicit flow leaves tokens in the fragment, PKCE leaves
  * a `code` in the query string.
  *
+ * `requireType` is what stops a page redeeming credentials that were not meant
+ * for it. Supabase stamps `type=recovery` on a password-reset redirect and
+ * nothing on a sign-in, so the reset page can insist on the former; without
+ * that check a misrouted OAuth redirect lands on /reset-password carrying a
+ * perfectly valid session, and the page cheerfully offers to change the
+ * password of the account that just signed in with Google.
+ *
  * Throws whatever the redirect reports — an expired or already-used link, or a
  * consent the visitor declined at Google.
  */
-async function consumeAuthRedirect(refusal: string): Promise<RedirectOutcome> {
+async function consumeAuthRedirect(
+  refusal: string,
+  requireType?: string
+): Promise<RedirectOutcome> {
   const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
   const query = new URLSearchParams(window.location.search);
 
@@ -139,6 +149,12 @@ async function consumeAuthRedirect(refusal: string): Promise<RedirectOutcome> {
   const accessToken = hash.get("access_token");
   const refreshToken = hash.get("refresh_token");
   const code = query.get("code");
+
+  // Credentials addressed to some other page. Leave them alone rather than
+  // redeem them: whatever they were for is still mid-flight.
+  if (requireType && (hash.get("type") ?? query.get("type")) !== requireType) {
+    if (accessToken || code) return "no-link";
+  }
 
   if (accessToken && refreshToken) {
     const { error } = await supabase.auth.setSession({
@@ -162,7 +178,7 @@ async function consumeAuthRedirect(refusal: string): Promise<RedirectOutcome> {
 
 /** Redeems the link from a password-reset email, so `updatePassword` can act. */
 export function consumeRecoveryLink(): Promise<RecoveryOutcome> {
-  return consumeAuthRedirect("That reset link is no longer valid.");
+  return consumeAuthRedirect("That reset link is no longer valid.", "recovery");
 }
 
 /** Where Google returns the visitor once they have picked an account. */
@@ -214,6 +230,47 @@ export function completeGoogleSignIn(): Promise<RedirectOutcome> {
 /** The path the callback was asked to return to, if it is safe to honour. */
 export function redirectTargetFromUrl(): string | null {
   return safeNext(new URLSearchParams(window.location.search).get("next"));
+}
+
+/** Where a Google account that has never been here before is sent. */
+export const WELCOME_PATH = "/welcome";
+
+/**
+ * Whether Google created this account, as opposed to signing in to one that
+ * already existed with a password.
+ *
+ * Supabase links a Google identity onto an existing user when the email
+ * matches, so "did they just sign up?" cannot be read from the user alone —
+ * both cases hand back a user with a google identity. What separates them is
+ * *when* that identity appeared: an account Google created has both timestamps
+ * written in the same transaction, while a linked one has the identity showing
+ * up whenever the visitor first used the button — days later, typically.
+ */
+export function isGoogleNativeAccount(user: User): boolean {
+  const google = user.identities?.find((identity) => identity.provider === "google");
+  if (!google?.created_at) return false;
+
+  const gap = Math.abs(Date.parse(google.created_at) - Date.parse(user.created_at));
+  return Number.isFinite(gap) && gap < 10_000;
+}
+
+/**
+ * Whether this account has already been through the welcome step.
+ *
+ * Kept in user metadata rather than `user_usage.onboarding_completed`: that
+ * column belongs to the product app's own questionnaire, and claiming it here
+ * would tell the app someone had answered questions they were never asked.
+ */
+export function hasBeenWelcomed(user: User): boolean {
+  return user.user_metadata?.welcomed === true;
+}
+
+/** Records the visitor's name and closes the welcome step for good. */
+export async function completeWelcome(fullName: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({
+    data: { full_name: fullName, welcomed: true },
+  });
+  if (error) throw error;
 }
 
 /** Applies the new password to the account the current session belongs to. */
