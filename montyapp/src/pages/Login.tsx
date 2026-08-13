@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthField } from "@/components/auth/AuthField";
+import { AuthDivider, GoogleButton } from "@/components/auth/GoogleButton";
 import { authErrorMessage, goToApp, signInWithPassword } from "@/lib/auth";
 
 interface LoginValues {
@@ -52,7 +53,12 @@ const Login = () => {
         </>
       }
     >
-      <form onSubmit={onSubmit} noValidate className="space-y-5">
+      <div className="space-y-6">
+        <GoogleButton label="Sign in with Google" disabled={isSubmitting} />
+        <AuthDivider />
+      </div>
+
+      <form onSubmit={onSubmit} noValidate className="mt-6 space-y-5">
         <AuthField
           label="Email"
           type="email"

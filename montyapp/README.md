@@ -2,6 +2,34 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Sign in with Google
+
+The client sets `detectSessionInUrl: false`, so the OAuth code is redeemed by
+exactly one page — `/auth/callback` — rather than by whichever route the browser
+happens to land on. That page sends the visitor to the product app, or back to
+the `?next=` path when they were part-way through a purchase.
+
+Enabling it takes config in two places:
+
+**Google Cloud Console** — APIs & Services → Credentials → OAuth client ID (type
+"Web application"):
+
+| Field | Value |
+| --- | --- |
+| Authorized JavaScript origins | `https://citepark.com`, `http://localhost:5173` |
+| Authorized redirect URI | `https://oumzszymeewcyyklkpsl.supabase.co/auth/v1/callback` |
+
+The redirect URI is Supabase's, not ours — Google returns to Supabase, which
+then returns to `/auth/callback` here.
+
+**Supabase dashboard** — Authentication → Providers → Google: enable it and
+paste the client ID and secret. Then under URL Configuration add both
+`https://citepark.com/auth/callback` and `http://localhost:5173/auth/callback`
+to the redirect allow list, or the callback is refused.
+
+No new environment variables: the client id lives on the Supabase project, not
+in the bundle.
+
 ## Payments (Razorpay)
 
 The site is static, so the two calls that need the Razorpay key secret run as

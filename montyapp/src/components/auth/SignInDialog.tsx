@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { ArrowRight, Loader2, UserRound } from "lucide-react";
 import {
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { AuthField } from "@/components/auth/AuthField";
+import { AuthDivider, GoogleButton } from "@/components/auth/GoogleButton";
 import { authErrorMessage, signInWithPassword, signOut } from "@/lib/auth";
 
 interface SignInValues {
@@ -46,6 +47,11 @@ export function SignInDialog({
   // Set when someone signed in here wants to pay as a different account.
   const [switching, setSwitching] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+
+  // Google's hand-off is a full page load, so it cannot resolve back into this
+  // dialog. Bring them back to the page they were buying from instead — the
+  // gate reopens on the next click, now showing the account they just chose.
+  const { pathname, search } = useLocation();
 
   const {
     register,
@@ -134,68 +140,73 @@ export function SignInDialog({
             </p>
           </div>
         ) : (
-          <form onSubmit={onSubmit} noValidate className="mt-2 space-y-5">
-            <AuthField
-              label="Email"
-              type="email"
-              placeholder="you@university.edu"
-              autoComplete="email"
-              autoFocus
-              disabled={isSubmitting}
-              error={errors.email?.message}
-              {...register("email", {
-                required: "Please enter your email.",
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "That doesn't look like a valid email.",
-                },
-              })}
-            />
+          <div className="mt-2 space-y-5">
+            <GoogleButton next={`${pathname}${search}`} disabled={isSubmitting} />
+            <AuthDivider />
 
-            <AuthField
-              label="Password"
-              type="password"
-              placeholder="Your password"
-              autoComplete="current-password"
-              disabled={isSubmitting}
-              error={errors.password?.message}
-              {...register("password", { required: "Please enter your password." })}
-            />
+            <form onSubmit={onSubmit} noValidate className="space-y-5">
+              <AuthField
+                label="Email"
+                type="email"
+                placeholder="you@university.edu"
+                autoComplete="email"
+                autoFocus
+                disabled={isSubmitting}
+                error={errors.email?.message}
+                {...register("email", {
+                  required: "Please enter your email.",
+                  pattern: {
+                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                    message: "That doesn't look like a valid email.",
+                  },
+                })}
+              />
 
-            {errors.root && (
-              <p role="alert" className="text-sm text-destructive">
-                {errors.root.message}
-              </p>
-            )}
+              <AuthField
+                label="Password"
+                type="password"
+                placeholder="Your password"
+                autoComplete="current-password"
+                disabled={isSubmitting}
+                error={errors.password?.message}
+                {...register("password", { required: "Please enter your password." })}
+              />
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in…
-                </>
-              ) : (
-                <>
-                  Sign in and continue
-                  <ArrowRight className="h-4 w-4" />
-                </>
+              {errors.root && (
+                <p role="alert" className="text-sm text-destructive">
+                  {errors.root.message}
+                </p>
               )}
-            </button>
 
-            <p className="text-center text-sm text-muted-foreground">
-              No account yet?{" "}
-              <Link
-                to="/signup"
-                className="font-semibold text-primary underline decoration-accent decoration-2 underline-offset-4 hover:text-accent"
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Create one
-              </Link>
-            </p>
-          </form>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing in…
+                  </>
+                ) : (
+                  <>
+                    Sign in and continue
+                    <ArrowRight className="h-4 w-4" />
+                  </>
+                )}
+              </button>
+
+              <p className="text-center text-sm text-muted-foreground">
+                No account yet?{" "}
+                <Link
+                  to="/signup"
+                  className="font-semibold text-primary underline decoration-accent decoration-2 underline-offset-4 hover:text-accent"
+                >
+                  Create one
+                </Link>
+              </p>
+            </form>
+          </div>
         )}
       </DialogContent>
     </Dialog>
