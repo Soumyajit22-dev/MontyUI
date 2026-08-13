@@ -1,12 +1,17 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
-import { ArrowRight, Loader2, MailCheck } from "lucide-react";
+import { ArrowRight, Loader2, MailCheck, UserRound } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthDivider, GoogleButton } from "@/components/auth/GoogleButton";
 import { APP_URL } from "@/lib/supabase";
-import { authErrorMessage, goToApp, signUpWithPassword } from "@/lib/auth";
+import {
+  NEW_ACCOUNT_PARAM,
+  authErrorMessage,
+  goToApp,
+  signUpWithPassword,
+} from "@/lib/auth";
 
 interface SignUpValues {
   fullName: string;
@@ -18,6 +23,12 @@ interface SignUpValues {
 const SignUp = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [sentTo, setSentTo] = useState<string | null>(null);
+
+  // Set when someone pressed "Sign in with Google" for an address that had no
+  // account. Google made one on the way here, so the sign-up they came for has
+  // already happened — this is the page that owes them that explanation.
+  const [params] = useSearchParams();
+  const justCreated = params.get(NEW_ACCOUNT_PARAM) === "1";
 
   const {
     register,
@@ -106,6 +117,28 @@ const SignUp = () => {
         </>
       }
     >
+      {justCreated && (
+        <div className="mb-6 rounded-2xl border border-border bg-paper p-5">
+          <div className="flex items-start gap-3">
+            <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden />
+            <div className="space-y-3">
+              <p className="text-sm leading-relaxed text-primary">
+                That Google account didn't have a CitePark account yet — so we've created
+                one. Nothing else to fill in.
+              </p>
+              <button
+                type="button"
+                onClick={goToApp}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-primary underline decoration-accent decoration-2 underline-offset-4 transition-colors hover:text-accent"
+              >
+                Continue to CitePark
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Google verifies the address itself, so this route skips the
           confirmation email the form below has to send. */}
       <div className="space-y-6">

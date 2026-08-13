@@ -209,6 +209,75 @@ interface GoogleOptions {
   intent?: GoogleIntent;
 }
 
+interface PendingGoogle {
+  intent: GoogleIntent | null;
+  next: string | null;
+}
+
+const PENDING_KEY = "citepark.google-attempt";
+
+/**
+ * Supabase only honours `redirect_to` when the URL is in the project's allow
+ * list; otherwise it quietly substitutes the Site URL and forwards the tokens
+ * there anyway. That loses the query string, and with it the intent — so the
+ * same facts are parked in sessionStorage, which survives the trip to Google
+ * and back no matter which page Supabase chooses to return to.
+ */
+function rememberGoogleAttempt(pending: PendingGoogle): void {
+  try {
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+  } catch {
+    // Private browsing, or storage full. The URL params still cover the case
+    // where the redirect lands where it was asked to.
+  }
+}
+
+/** Reads and clears the pending attempt — a return trip is only valid once. */
+export function takeGoogleAttempt(): PendingGoogle | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(PENDING_KEY);
+
+    const parsed = JSON.parse(raw) as PendingGoogle;
+    return {
+      intent: parsed.intent === "signup" || parsed.intent === "signin" ? parsed.intent : null,
+      next: safeNext(parsed.next ?? null),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Whether this tab is waiting on a Google round trip it started itself. */
+export function hasPendingGoogleAttempt(): boolean {
+  try {
+    return sessionStorage.getItem(PENDING_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Whether the current URL carries credentials from a sign-in redirect.
+ *
+ * Recovery links are deliberately excluded: those belong to /reset-password,
+ * which redeems them itself.
+ */
+export function urlHasSignInCredentials(): boolean {
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const query = new URLSearchParams(window.location.search);
+
+  if ((hash.get("type") ?? query.get("type")) === "recovery") return false;
+
+  return Boolean(
+    hash.get("access_token") ||
+      query.get("code") ||
+      hash.get("error_code") ||
+      query.get("error_code")
+  );
+}
+
 /**
  * Hands the visitor to Google's account chooser. Returns only if the redirect
  * failed to start — on success the browser has already left the page.
@@ -218,6 +287,8 @@ export async function signInWithGoogle({ next, intent }: GoogleOptions = {}): Pr
   const target = safeNext(next ?? null);
   if (target) callback.searchParams.set("next", target);
   if (intent) callback.searchParams.set("intent", intent);
+
+  rememberGoogleAttempt({ intent: intent ?? null, next: target });
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -270,6 +341,39 @@ export function isGoogleNativeAccount(user: User): boolean {
 
 /** Tells /login it was reached by someone who tried to sign *up* with Google. */
 export const EXISTING_ACCOUNT_PARAM = "existing";
+
+/** Tells /signup it was reached by someone whose account was just created. */
+export const NEW_ACCOUNT_PARAM = "created";
+
+/**
+ * Where a completed Google round trip should leave the visitor. `null` means
+ * the product app.
+ *
+ * The awkwardness here is not ours: Google has one endpoint, and it signs the
+ * visitor in *and* creates the account when none existed. By the time we can
+ * tell the two apart, the account exists either way — so pressing "sign in"
+ * with an unknown address cannot be turned back into "you have no account".
+ * The best available is to say so on the page they expected to need, with the
+ * session they already have intact, rather than make them start over.
+ */
+export function decideGoogleDestination(
+  user: User | null,
+  intent: GoogleIntent | null,
+  next: string | null
+): string | null {
+  // Mid-purchase beats everything — anything else abandons the checkout.
+  if (next) return next;
+
+  const justCreated = Boolean(user && isGoogleNativeAccount(user));
+
+  if (intent === "signup" && !justCreated) {
+    return `/login?${EXISTING_ACCOUNT_PARAM}=1`;
+  }
+  if (intent === "signin" && justCreated) {
+    return `/signup?${NEW_ACCOUNT_PARAM}=1`;
+  }
+  return null;
+}
 
 /** Applies the new password to the account the current session belongs to. */
 export async function updatePassword(password: string): Promise<void> {

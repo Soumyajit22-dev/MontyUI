@@ -54,7 +54,21 @@ what actually happened:
 | either, mid-purchase (`?next=`) | either | back to that page, so checkout survives |
 | Sign up | did not exist | `app.citepark.com` |
 | Sign up | already existed | `/login?existing=1`, which explains the detour |
-| Sign in | either | `app.citepark.com` |
+| Sign in | already existed | `app.citepark.com` |
+| Sign in | did not exist | `/signup?created=1`, which explains the detour |
+
+Neither detour asks the visitor to do anything again: Google signed them in
+before we could tell the cases apart, so both pages carry that session and a
+"Continue to CitePark" button. Un-creating the account is not on the table —
+Google's one endpoint signs in and signs up in the same call.
+
+`GoogleReturnGate` sits above the router and finishes the sign-in wherever the
+redirect lands, not only on `/auth/callback`. That is deliberate insurance: when
+`redirect_to` is missing from the allow list Supabase forwards the tokens to the
+Site URL instead, and without the gate the sign-in dead-ends on whatever page
+that happens to be. It acts only when the URL carries credentials *and* this tab
+has a pending attempt in sessionStorage, so `detectSessionInUrl: false` still
+means what it says — a URL on its own cannot sign anyone in.
 
 "The account already existed" is not the same as "the user has a password".
 Supabase links a Google identity onto an existing user when the email matches,

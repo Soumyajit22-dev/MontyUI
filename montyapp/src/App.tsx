@@ -13,6 +13,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
+import { GoogleReturnGate } from "@/components/auth/GoogleReturnGate";
 
 const queryClient = new QueryClient();
 
@@ -22,18 +23,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/premium/success" element={<PremiumSuccess />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        {/* Above the routes: a Google return has to be caught wherever Supabase
+            drops it, not only on the page it was aimed at. */}
+        <GoogleReturnGate>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/premium/success" element={<PremiumSuccess />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </GoogleReturnGate>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
