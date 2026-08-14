@@ -204,7 +204,7 @@ export function PlanGrid({ className = "" }: { className?: string }) {
 /** The pricing block on the landing page. /pricing is the page-sized version. */
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-paper py-20 lg:py-28">
+    <section id="pricing" className="bg-background py-20 lg:py-28">
       <div className="container">
         <p className="label-eyebrow text-accent">Pricing</p>
         <h2 className="mt-4 display-lg max-w-2xl text-primary">

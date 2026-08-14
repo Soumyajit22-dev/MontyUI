@@ -3,11 +3,12 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const links = [
-  { label: "Research", href: "/#research" },
+  { label: "How it works", href: "/#research" },
   { label: "Editor", href: "/#editor" },
   { label: "References", href: "/#references" },
+  // Research validation is the product's own word for it — one entry, not two.
+  { label: "Validate", href: "/#validate" },
   { label: "Manage", href: "/#manage" },
-  { label: "Why CitePark", href: "/#why" },
   { label: "Pricing", href: "/pricing" },
 ];
 

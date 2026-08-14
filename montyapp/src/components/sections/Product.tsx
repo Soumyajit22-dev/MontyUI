@@ -59,7 +59,7 @@ const tracked = [
 
 export function Manage() {
   return (
-    <section id="manage" className="bg-paper py-20 lg:py-28">
+    <section id="manage" className="bg-background py-20 lg:py-28">
       <div className="container grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         <div className="lg:col-span-5">
           <p className="label-eyebrow text-accent">Manage</p>
