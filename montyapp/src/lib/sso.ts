@@ -216,7 +216,7 @@ export function installSharedSessionSync(): void {
  * the user exactly as signed in as they were, facing the sign-in form they
  * would have seen anyway.
  */
-export async function bootstrapSharedSession(): Promise<void> {
+async function bootstrapSharedSession(): Promise<void> {
   const { data } = await supabase.auth.getSession();
   const shared = readSharedSession();
 
@@ -233,4 +233,25 @@ export async function bootstrapSharedSession(): Promise<void> {
   if (data.session && !shared && sharedCookiesWork()) {
     await supabase.auth.refreshSession();
   }
+}
+
+let reconciled: Promise<void> | null = null;
+
+/**
+ * Settles once this origin has finished asking the shared cookie who is signed
+ * in — started at boot, and awaited by anything that renders differently for a
+ * signed-in visitor.
+ *
+ * The wait is what stops the header showing a Sign in button to someone who
+ * already has an account open. Before the reconcile, "no session in
+ * localStorage" is not yet an answer: the session may be sitting in the cookie
+ * waiting to be adopted, and drawing the signed-out header on that assumption
+ * means the visitor watches it correct itself a moment later.
+ *
+ * One promise, however many callers — the reconcile must not run twice, and the
+ * rotation in its seed branch makes that more than an efficiency point.
+ */
+export function sharedSessionReady(): Promise<void> {
+  if (!reconciled) reconciled = bootstrapSharedSession();
+  return reconciled;
 }

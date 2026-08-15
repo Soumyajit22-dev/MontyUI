@@ -5,6 +5,8 @@ import { ArrowRight, Loader2, MailCheck, UserRound } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthDivider, GoogleButton } from "@/components/auth/GoogleButton";
+import { AlreadySignedIn } from "@/components/auth/AlreadySignedIn";
+import { useSession } from "@/hooks/use-session";
 import { APP_URL } from "@/lib/supabase";
 import {
   NEW_ACCOUNT_PARAM,
@@ -29,6 +31,8 @@ const SignUp = () => {
   // already happened — this is the page that owes them that explanation.
   const [params] = useSearchParams();
   const justCreated = params.get(NEW_ACCOUNT_PARAM) === "1";
+
+  const { status, user } = useSession();
 
   const {
     register,
@@ -57,6 +61,16 @@ const SignUp = () => {
       setFormError(authErrorMessage(error));
     }
   });
+
+  // Nothing until the session is known — see the same guard on /login.
+  if (status === "loading") return null;
+
+  // An account in hand means there is nothing to sign up for. `justCreated` is
+  // the exception: Google made the account on the way here, and this page owes
+  // that visitor the explanation rather than a generic "you're signed in".
+  if (status === "signed-in" && user && !justCreated) {
+    return <AlreadySignedIn user={user} />;
+  }
 
   // Email confirmation is on for this project — the account exists but is not usable yet.
   if (sentTo) {

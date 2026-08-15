@@ -5,6 +5,8 @@ import { ArrowRight, Loader2, UserRound } from "lucide-react";
 import { AuthShell } from "@/components/auth/AuthShell";
 import { AuthField } from "@/components/auth/AuthField";
 import { AuthDivider, GoogleButton } from "@/components/auth/GoogleButton";
+import { AlreadySignedIn } from "@/components/auth/AlreadySignedIn";
+import { useSession } from "@/hooks/use-session";
 import {
   EXISTING_ACCOUNT_PARAM,
   authErrorMessage,
@@ -26,6 +28,8 @@ const Login = () => {
   const [params] = useSearchParams();
   const alreadyRegistered = params.get(EXISTING_ACCOUNT_PARAM) === "1";
 
+  const { status, user } = useSession();
+
   const {
     register,
     handleSubmit,
@@ -41,6 +45,20 @@ const Login = () => {
       setFormError(authErrorMessage(error));
     }
   });
+
+  // Nothing until the session is known. Drawing the form first and replacing it
+  // a moment later is worse than a beat of blank, and for a visitor with no
+  // session this resolves without touching the network.
+  if (status === "loading") return null;
+
+  // Signed in already — so there is no sign-in to offer. The one exception is
+  // the visitor Google sent here *because* they were signed in: they pressed
+  // "sign up", the account already existed, and the panel below is the
+  // explanation they are owed. Replacing it with the generic version would drop
+  // that on the floor.
+  if (status === "signed-in" && user && !alreadyRegistered) {
+    return <AlreadySignedIn user={user} />;
+  }
 
   return (
     <AuthShell

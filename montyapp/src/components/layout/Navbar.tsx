@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/hooks/use-session";
+import { goToApp, signOut } from "@/lib/auth";
 
 const links = [
   { label: "How it works", href: "/#research" },
@@ -11,6 +13,65 @@ const links = [
   { label: "Manage", href: "/#manage" },
   { label: "Pricing", href: "/pricing" },
 ];
+
+const linkClass =
+  "text-xs font-semibold uppercase tracking-[0.14em] text-primary/80 transition-colors hover:text-accent";
+const pillClass =
+  "rounded-full bg-primary px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary-foreground transition-colors hover:bg-accent";
+
+/**
+ * The right-hand pair: an invitation to sign up, or a way back into the app.
+ *
+ * Nothing is drawn while the session is still being worked out. The alternative
+ * is to assume signed-out and correct it a moment later, which puts a Sign in
+ * button in front of people who are already signed in — and the reconcile is a
+ * microtask for the anonymous visitors this would be optimising for, since only
+ * an actual handoff costs a round trip.
+ */
+function AccountLinks() {
+  const { status } = useSession();
+  const [leaving, setLeaving] = useState(false);
+
+  if (status === "loading") return null;
+
+  if (status === "signed-in") {
+    return (
+      <>
+        <button
+          type="button"
+          disabled={leaving}
+          onClick={async () => {
+            setLeaving(true);
+            try {
+              await signOut();
+            } finally {
+              // The header follows the auth event rather than this flag; this
+              // only releases the button if signing out failed.
+              setLeaving(false);
+            }
+          }}
+          className={cn(linkClass, "disabled:opacity-60")}
+        >
+          Sign out
+        </button>
+        <button type="button" onClick={goToApp} className={pillClass}>
+          Open CitePark
+        </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Link to="/login" className={linkClass}>
+        Sign in
+      </Link>
+      <Link to="/signup" className={pillClass}>
+        Get Access
+      </Link>
+    </>
+  );
+}
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -52,18 +113,7 @@ export function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3 sm:gap-5">
-          <Link
-            to="/login"
-            className="text-xs font-semibold uppercase tracking-[0.14em] text-primary/80 transition-colors hover:text-accent"
-          >
-            Sign in
-          </Link>
-          <Link
-            to="/signup"
-            className="rounded-full bg-primary px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.14em] text-primary-foreground transition-colors hover:bg-accent"
-          >
-            Get Access
-          </Link>
+          <AccountLinks />
         </div>
       </div>
     </header>

@@ -1,7 +1,13 @@
 import { Link } from "react-router-dom";
 import productAsset from "@/assets/product.png";
+import { useSession } from "@/hooks/use-session";
+import { goToApp } from "@/lib/auth";
 
 export function Hero() {
+  const { status } = useSession();
+  const ctaClass =
+    "rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-accent";
+
   return (
     <section className="relative overflow-hidden bg-background">
       <div className="container pt-16 pb-20 lg:pt-24 lg:pb-28">
@@ -19,12 +25,19 @@ export function Hero() {
               your paper in LaTeX, and keep every experiment, figure and document in order.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-4">
-              <Link
-                to="/signup"
-                className="rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-accent"
-              >
-                Start your project
-              </Link>
+              {/* Someone with an account is not here to start one. While the
+                  session is still unknown the sign-up wording is the safe
+                  default: it is right for every visitor who is not signed in,
+                  and /signup catches the ones who are. */}
+              {status === "signed-in" ? (
+                <button type="button" onClick={goToApp} className={ctaClass}>
+                  Open CitePark
+                </button>
+              ) : (
+                <Link to="/signup" className={ctaClass}>
+                  Start your project
+                </Link>
+              )}
               <a
                 href="#editor"
                 className="group inline-flex items-center gap-2 text-sm font-semibold text-accent"
