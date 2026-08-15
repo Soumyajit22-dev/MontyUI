@@ -15,9 +15,11 @@ const supabaseKey = required("VITE_SUPABASE_PUBLISHABLE_KEY");
 
 /**
  * citepark.com and app.citepark.com share one Supabase project, so a user created
- * here can sign in over there with the same credentials. The session itself does
- * not travel: it lives in this origin's localStorage, and app.citepark.com asks
- * for its own login.
+ * here can sign in over there with the same credentials.
+ *
+ * The session lives in this origin's localStorage, which app.citepark.com cannot
+ * read. What crosses is a cookie on the domain both share — see ./sso.ts — so
+ * the product app can pick the session up instead of asking for a second login.
  */
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {

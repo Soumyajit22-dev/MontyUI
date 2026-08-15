@@ -1,5 +1,6 @@
 import { AuthError, type User } from "@supabase/supabase-js";
 import { APP_URL, supabase } from "./supabase";
+import { clearSharedSession } from "./sso";
 
 /** Signup either lands the user straight in, or parks them until they confirm their email. */
 export type SignUpOutcome = "active" | "needs-confirmation";
@@ -391,10 +392,22 @@ export async function getSessionUser(): Promise<User | null> {
 }
 
 export async function signOut(): Promise<void> {
+  // Unconditionally, and before the call that ends the session: this is the one
+  // sign-out that is definitely deliberate, so it is allowed to end the app's
+  // session too. The listener in ./sso.ts cannot make that call for itself —
+  // supabase-js reports a refresh it could not complete the same way it reports
+  // this, and guessing wrong there signs people out mid-sentence.
+  clearSharedSession();
   await supabase.auth.signOut();
 }
 
-/** Hand the visitor off to the product app, which runs its own auth middleware. */
+/**
+ * Hand the visitor off to the product app.
+ *
+ * Nothing to carry: by the time anything calls this, the session that was just
+ * created has been written to the cookie both domains share, and the app reads
+ * it on load. See ./sso.ts.
+ */
 export function goToApp(): void {
   window.location.assign(APP_URL);
 }
