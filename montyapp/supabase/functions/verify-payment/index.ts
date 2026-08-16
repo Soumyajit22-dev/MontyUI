@@ -10,12 +10,12 @@
  */
 import { json, preflight, razorpayAuthHeader } from "../_shared/http.ts";
 import { adminClient, userFromRequest } from "../_shared/supabase.ts";
+import { type BillingInterval, planFromNotes } from "../_shared/plans.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 const RAZORPAY_ORDERS_URL = "https://api.razorpay.com/v1/orders";
 
-/** Premium is sold a month at a time, matching user_usage's 30-day cycle. */
-const PERIOD_DAYS = 30;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface VerifyBody {
   razorpay_order_id?: string;
@@ -70,19 +70,45 @@ async function fetchOrder(
   return (await response.json()) as RazorpayOrder;
 }
 
+interface Grant {
+  userId: string;
+  orderId: string;
+  paymentId: string;
+  periodDays: number;
+  interval: BillingInterval;
+}
+
 /**
  * Flips the account to Premium. The product app reads user_usage.is_pro, so
  * that is the row that matters; the Razorpay references go on the user's
  * app_metadata, which is server-writable only and rides along in the JWT.
+ *
+ * The new term is added to whatever is left of the current one rather than
+ * replacing it. Someone on a live monthly plan who buys the annual is upgrading,
+ * not forfeiting — resetting the end date to today would quietly take back the
+ * days they had already paid for. Only an expired period starts from now.
+ *
+ * user_usage rows are created lazily by the product app, so the row this is
+ * asked to update may not exist yet; the read that establishes the existing end
+ * date is also what says which way to write.
  */
-async function grantPremium(
-  admin: SupabaseClient,
-  userId: string,
-  orderId: string,
-  paymentId: string
-): Promise<void> {
+async function grantPremium(admin: SupabaseClient, grant: Grant): Promise<Date> {
+  const { userId, orderId, paymentId, periodDays, interval } = grant;
+
+  const { data: existing, error: readError } = await admin
+    .from("user_usage")
+    .select("id, current_period_end")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (readError) throw readError;
+
   const now = new Date();
-  const periodEnd = new Date(now.getTime() + PERIOD_DAYS * 24 * 60 * 60 * 1000);
+  const currentEnd = existing?.current_period_end
+    ? new Date(existing.current_period_end as string)
+    : null;
+  const extendFrom =
+    currentEnd && currentEnd.getTime() > now.getTime() ? currentEnd : now;
+  const periodEnd = new Date(extendFrom.getTime() + periodDays * DAY_MS);
 
   const subscription = {
     is_pro: true,
@@ -93,31 +119,31 @@ async function grantPremium(
     updated_at: now.toISOString(),
   };
 
-  // Update-then-insert rather than upsert: user_usage rows are created lazily by
-  // the product app, and this does not assume a unique constraint on user_id.
-  const { data: updated, error: updateError } = await admin
-    .from("user_usage")
-    .update(subscription)
-    .eq("user_id", userId)
-    .select("id");
-  if (updateError) throw updateError;
-
-  if (!updated || updated.length === 0) {
-    const { error: insertError } = await admin
+  if (existing) {
+    const { error } = await admin
+      .from("user_usage")
+      .update(subscription)
+      .eq("user_id", userId);
+    if (error) throw error;
+  } else {
+    const { error } = await admin
       .from("user_usage")
       .insert({ user_id: userId, ...subscription });
-    if (insertError) throw insertError;
+    if (error) throw error;
   }
 
   const { error: metadataError } = await admin.auth.admin.updateUserById(userId, {
     app_metadata: {
       plan: "premium",
+      billing_period: interval,
       premium_until: periodEnd.toISOString(),
       razorpay_order_id: orderId,
       razorpay_payment_id: paymentId,
     },
   });
   if (metadataError) throw metadataError;
+
+  return periodEnd;
 }
 
 Deno.serve(async (req) => {
@@ -185,8 +211,25 @@ Deno.serve(async (req) => {
     return json({ verified: false, error: "This payment has not completed yet." }, 400);
   }
 
+  // The term comes from the plan the order was created for, never from the
+  // request: create-order stamped it into the notes server-side, and this is
+  // the copy Razorpay stored.
+  const { id: planId, plan, recognised } = planFromNotes(order.notes);
+  if (!recognised) {
+    console.warn(
+      `Order ${orderId} names plan "${order.notes?.plan}", which is not in the catalogue — granting ${planId}.`
+    );
+  }
+
+  let periodEnd: Date;
   try {
-    await grantPremium(admin, user.id, orderId, paymentId);
+    periodEnd = await grantPremium(admin, {
+      userId: user.id,
+      orderId,
+      paymentId,
+      periodDays: plan.periodDays,
+      interval: plan.interval,
+    });
   } catch (error) {
     // The money moved even though the upgrade did not — say so rather than
     // letting it read as a failed payment.
@@ -206,5 +249,8 @@ Deno.serve(async (req) => {
     premium: true,
     order_id: orderId,
     payment_id: paymentId,
+    plan: planId,
+    billing_period: plan.interval,
+    premium_until: periodEnd.toISOString(),
   });
 });

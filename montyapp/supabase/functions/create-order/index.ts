@@ -8,18 +8,9 @@
  */
 import { json, preflight, razorpayAuthHeader } from "../_shared/http.ts";
 import { adminClient, userFromRequest } from "../_shared/supabase.ts";
+import { MIN_AMOUNT_PAISE, PLAN_IDS, PLANS, type PlanId, isPlanId } from "../_shared/plans.ts";
 
 const RAZORPAY_ORDERS_URL = "https://api.razorpay.com/v1/orders";
-
-/** Razorpay rejects anything smaller, so catch it before spending a round trip. */
-const MIN_AMOUNT_PAISE = 100;
-
-/** The catalogue, in paise. Keep in sync with the pricing section's copy. */
-const PLANS = {
-  premium: { amount: 20_000, currency: "INR", label: "CitePark Premium — 1 month" },
-} as const;
-
-type PlanId = keyof typeof PLANS;
 
 interface CreateOrderBody {
   plan?: string;
@@ -66,9 +57,9 @@ Deno.serve(async (req) => {
     return json({ error: "Expected a JSON body." }, 400);
   }
 
-  const planId = body.plan as PlanId | undefined;
-  if (!planId || !(planId in PLANS)) {
-    return json({ error: `Unknown plan. Expected one of: ${Object.keys(PLANS).join(", ")}.` }, 400);
+  const planId: PlanId | undefined = isPlanId(body.plan) ? body.plan : undefined;
+  if (!planId) {
+    return json({ error: `Unknown plan. Expected one of: ${PLAN_IDS.join(", ")}.` }, 400);
   }
 
   const plan = PLANS[planId];

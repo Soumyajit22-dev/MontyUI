@@ -4,11 +4,18 @@ import { supabase } from "./supabase";
 
 const CHECKOUT_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
 
-/** Plans priced server-side by the create-order function; this only names one. */
-export type PlanId = "premium";
+/** Plans priced server-side by the create-order function; this only names them. */
+export type PlanId = "premium_monthly" | "premium_annual";
 
 export type CheckoutOutcome =
-  | { status: "paid"; orderId: string; paymentId: string }
+  | {
+      status: "paid";
+      orderId: string;
+      paymentId: string;
+      /** What the server granted, so the confirmation can name the term. */
+      billingPeriod: string | null;
+      premiumUntil: string | null;
+    }
   | { status: "dismissed" };
 
 interface CreateOrderResponse {
@@ -27,6 +34,13 @@ type RazorpaySuccess = {
 
 interface RazorpayFailure {
   error?: { description?: string; reason?: string };
+}
+
+interface VerifyResponse {
+  verified: boolean;
+  premium: boolean;
+  billing_period?: string;
+  premium_until?: string;
 }
 
 interface RazorpayOptions {
@@ -155,13 +169,18 @@ export async function startCheckout(plan: PlanId): Promise<CheckoutOutcome> {
       handler: (response) => {
         // verify-payment is what actually grants Premium, so its failure is a
         // failure of the purchase even though the modal already said "success".
-        invokeFunction<{ verified: boolean; premium: boolean }>("verify-payment", response).then(
-          () =>
+        invokeFunction<VerifyResponse>("verify-payment", response).then(
+          (verified) =>
             settle(() =>
               resolve({
                 status: "paid",
                 orderId: response.razorpay_order_id,
                 paymentId: response.razorpay_payment_id,
+                // The term is the server's to state, not the page's: it is the
+                // end date actually written, which extends an unexpired period
+                // rather than restarting it.
+                billingPeriod: verified.billing_period ?? null,
+                premiumUntil: verified.premium_until ?? null,
               })
             ),
           (error: Error) => settle(() => reject(error))

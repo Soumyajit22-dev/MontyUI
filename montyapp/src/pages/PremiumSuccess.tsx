@@ -1,23 +1,23 @@
-import { useEffect } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { ArrowRight, Check } from "lucide-react";
 import { Layout } from "@/components/layout/Layout";
 import { goToApp } from "@/lib/auth";
-import { readPurchase } from "@/lib/premium";
+import { PREMIUM_FEATURES } from "@/lib/plans";
+import { type Purchase, readPurchase } from "@/lib/premium";
 import { APP_URL } from "@/lib/supabase";
 
-interface SuccessState {
-  paymentId?: string;
-}
+/** "12 August 2027", or null for anything that isn't a date we can read. */
+function formatUntil(iso: string | null): string | null {
+  if (!iso) return null;
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return null;
 
-const unlocked = [
-  "Unlimited projects",
-  "Diagrams on demand — TikZ & draw.io",
-  "Results, datasets and figure tracking",
-  "Team workspaces and activity",
-  "Version history across documents",
-  "Priority support",
-];
+  return date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 /**
  * Where a verified payment lands. Checkout passes the reference through router
@@ -27,13 +27,13 @@ const unlocked = [
  */
 const PremiumSuccess = () => {
   const { state } = useLocation();
-  const paymentId = (state as SuccessState | null)?.paymentId ?? readPurchase();
+  const purchase = (state as Purchase | null) ?? readPurchase();
 
-  // Checkout is opened from halfway down the plans, and the router keeps that
-  // scroll position — the confirmation has to start at the top to be read.
-  useEffect(() => window.scrollTo(0, 0), []);
+  if (!purchase?.paymentId) return <Navigate to="/pricing" replace />;
 
-  if (!paymentId) return <Navigate to="/pricing" replace />;
+  const { paymentId, billingPeriod } = purchase;
+  const until = formatUntil(purchase.premiumUntil);
+  const termLabel = billingPeriod === "annual" ? "Annual" : "Monthly";
 
   return (
     <Layout hideFooter>
@@ -53,8 +53,16 @@ const PremiumSuccess = () => {
             the work — we're glad you're here.
           </p>
 
+          {until && (
+            <p className="mt-6 inline-flex flex-wrap items-center gap-x-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm text-primary">
+              <span className="font-semibold">{termLabel}</span>
+              <span aria-hidden className="text-border">·</span>
+              <span className="text-muted-foreground">active until {until}</span>
+            </p>
+          )}
+
           <ul className="mt-10 grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 rounded-2xl bg-background p-8 shadow-soft">
-            {unlocked.map((item) => (
+            {PREMIUM_FEATURES.map((item) => (
               <li key={item} className="flex items-start gap-3 text-sm text-primary">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden />
                 <span>{item}</span>

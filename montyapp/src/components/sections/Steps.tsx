@@ -28,7 +28,7 @@ const steps = [
 
 export function Steps() {
   return (
-    <section id="research" className="bg-paper py-20 lg:py-28">
+    <section id="research" className="scroll-mt-[68px] bg-paper py-20 lg:py-28">
       <div className="container">
         <p className="label-eyebrow text-accent">How it works</p>
         <h2 className="mt-4 display-lg max-w-2xl text-primary">

@@ -35,7 +35,7 @@ const formats = ["BibTeX", "RIS", "CSL", "APA", "IEEE", "MLA", "Chicago"];
 
 export function References() {
   return (
-    <section id="references" className="bg-background py-20 lg:py-28">
+    <section id="references" className="scroll-mt-[68px] bg-background py-20 lg:py-28">
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
           <div className="lg:col-span-7">

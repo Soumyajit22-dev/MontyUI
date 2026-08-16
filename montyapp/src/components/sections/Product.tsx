@@ -10,7 +10,7 @@ const features = [
 
 export function Editor() {
   return (
-    <section id="editor" className="bg-primary text-primary-foreground py-20 lg:py-28">
+    <section id="editor" className="scroll-mt-[68px] bg-primary text-primary-foreground py-20 lg:py-28">
       <div className="container">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-end">
           <div className="lg:col-span-7">
@@ -59,7 +59,7 @@ const tracked = [
 
 export function Manage() {
   return (
-    <section id="manage" className="bg-background py-20 lg:py-28">
+    <section id="manage" className="scroll-mt-[68px] bg-background py-20 lg:py-28">
       <div className="container grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
         <div className="lg:col-span-5">
           <p className="label-eyebrow text-accent">Manage</p>

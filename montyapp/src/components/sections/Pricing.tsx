@@ -2,9 +2,18 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { SignInDialog } from "@/components/auth/SignInDialog";
+import { BillingToggle } from "@/components/pricing/BillingToggle";
 import { getReconciledSessionUser } from "@/lib/auth";
+import {
+  ANNUAL_SAVING,
+  BASIC_FEATURES,
+  type BillingPeriod,
+  PREMIUM_FEATURES,
+  PREMIUM_PRICING,
+  formatRupees,
+} from "@/lib/plans";
 import { PREMIUM_SUCCESS_PATH, rememberPurchase } from "@/lib/premium";
-import { checkoutErrorMessage, startCheckout } from "@/lib/razorpay";
+import { type PlanId, checkoutErrorMessage, startCheckout } from "@/lib/razorpay";
 
 /** One shape for both CTAs so the paid one doesn't drift from the free one. */
 function ctaClass(featured: boolean): string {
@@ -13,42 +22,6 @@ function ctaClass(featured: boolean): string {
     : "bg-primary text-primary-foreground hover:bg-accent"
     }`;
 }
-
-const plans = [
-  {
-    name: "Basic",
-    price: "Free",
-    period: "forever",
-    body: "Everything you need to validate an idea and write your first paper.",
-    features: [
-      "1 active project",
-      "LaTeX editor — code and visual",
-      "AI drafting and edits",
-      "Literature validation",
-      "Community support",
-    ],
-    cta: "Start for free",
-    featured: false,
-    paid: false,
-  },
-  {
-    name: "Premium",
-    price: "₹200",
-    period: "per month",
-    body: "For researchers running several projects at once, with a team beside them.",
-    features: [
-      "Unlimited projects",
-      "Diagrams on demand — TikZ & draw.io",
-      "Results, datasets and figure tracking",
-      "Team workspaces and activity",
-      "Version history across documents",
-      "Priority support",
-    ],
-    cta: "Get Premium",
-    featured: true,
-    paid: true,
-  },
-];
 
 /**
  * Opens Razorpay checkout for Premium. The price is set server-side, and so is
@@ -59,7 +32,15 @@ const plans = [
  * to the app belongs on a page of its own, where it survives being reloaded and
  * waits for the visitor instead of a timer.
  */
-function PremiumCheckoutButton({ label, featured }: { label: string; featured: boolean }) {
+function PremiumCheckoutButton({
+  label,
+  featured,
+  planId,
+}: {
+  label: string;
+  featured: boolean;
+  planId: PlanId;
+}) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
@@ -69,12 +50,22 @@ function PremiumCheckoutButton({ label, featured }: { label: string; featured: b
     setError(null);
     setPending(true);
     try {
-      const outcome = await startCheckout("premium");
+      const outcome = await startCheckout(planId);
       if (outcome.status === "paid") {
         // The account is Premium by the time this resolves. Leave the button
         // spinning — this component is on its way out with the page.
-        rememberPurchase(outcome.paymentId);
-        navigate(PREMIUM_SUCCESS_PATH, { state: { paymentId: outcome.paymentId } });
+        rememberPurchase({
+          paymentId: outcome.paymentId,
+          billingPeriod: outcome.billingPeriod,
+          premiumUntil: outcome.premiumUntil,
+        });
+        navigate(PREMIUM_SUCCESS_PATH, {
+          state: {
+            paymentId: outcome.paymentId,
+            billingPeriod: outcome.billingPeriod,
+            premiumUntil: outcome.premiumUntil,
+          },
+        });
         return;
       }
       // A dismissed modal is not a failure — leave the button as it was.
@@ -138,76 +129,123 @@ function PremiumCheckoutButton({ label, featured }: { label: string; featured: b
   );
 }
 
+/** The price block, which is the only part of a card the toggle changes. */
+function PremiumPrice({ billing }: { billing: BillingPeriod }) {
+  const pricing = PREMIUM_PRICING[billing];
+
+  return (
+    // Keyed on the period so React remounts on a switch and the fade replays;
+    // without it the numbers would swap in place with no acknowledgement.
+    <div key={billing} className="animate-in fade-in slide-in-from-bottom-1 duration-300">
+      <div className="flex items-baseline gap-2">
+        <span className="font-display text-5xl lg:text-6xl font-semibold tracking-[-0.03em]">
+          {formatRupees(pricing.perMonth)}
+        </span>
+        <span className="text-sm text-primary-foreground/60">per month</span>
+      </div>
+
+      <p className="mt-2 text-sm text-primary-foreground/70">
+        {billing === "annual" ? (
+          <>
+            {formatRupees(pricing.total)} billed yearly — you save{" "}
+            <span className="font-semibold text-accent">{formatRupees(ANNUAL_SAVING)}</span>
+          </>
+        ) : (
+          "Billed every 30 days. Cancel any time."
+        )}
+      </p>
+    </div>
+  );
+}
+
 /**
  * The two plans, checkout wiring included. Lives apart from the section around
  * it so the landing page and /pricing show the same cards rather than two
- * copies that drift.
+ * copies that drift — which is also why the billing toggle lives here: both
+ * surfaces get it from one place.
+ *
+ * Annual is the opening state. It is the cheaper of the two per month, so it is
+ * the honest thing to lead with; a visitor who wants to pay monthly is one
+ * click away and can see exactly what that costs.
  */
 export function PlanGrid({ className = "" }: { className?: string }) {
-  return (
-    <div className={`grid grid-cols-1 lg:grid-cols-2 gap-8 ${className}`}>
-      {plans.map((p) => (
-        <div
-          key={p.name}
-          className={
-            p.featured
-              ? "relative flex flex-col rounded-2xl bg-primary text-primary-foreground p-8 lg:p-10 shadow-elite"
-              : "relative flex flex-col rounded-2xl border border-border bg-background p-8 lg:p-10 shadow-soft"
-          }
-        >
-          {p.featured && (
-            <span className="absolute right-8 top-8 lg:right-10 lg:top-10 rounded-full bg-accent px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-accent-foreground">
-              Most popular
-            </span>
-          )}
+  const [billing, setBilling] = useState<BillingPeriod>("annual");
+  const premium = PREMIUM_PRICING[billing];
 
-          <h3 className={`text-2xl font-semibold ${p.featured ? "" : "text-primary"}`}>
-            {p.name}
-          </h3>
-          <p
-            className={`mt-2 text-sm leading-relaxed ${p.featured ? "text-primary-foreground/70" : "text-muted-foreground"
-              }`}
-          >
-            {p.body}
+  return (
+    <div className={className}>
+      <BillingToggle value={billing} onChange={setBilling} />
+
+      <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Basic */}
+        <div className="relative flex flex-col rounded-2xl border border-border bg-background p-8 lg:p-10 shadow-soft">
+          <h3 className="text-2xl font-semibold text-primary">Basic</h3>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Everything you need to validate an idea and write your first paper.
           </p>
 
-          <div className="mt-8 flex items-baseline gap-2">
-            <span
-              className={`font-display text-5xl lg:text-6xl font-semibold tracking-[-0.03em] ${p.featured ? "" : "text-primary"
-                }`}
-            >
-              {p.price}
-            </span>
-            <span
-              className={`text-sm ${p.featured ? "text-primary-foreground/60" : "text-muted-foreground"
-                }`}
-            >
-              {p.period}
-            </span>
+          <div className="mt-8">
+            <div className="flex items-baseline gap-2">
+              <span className="font-display text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-primary">
+                Free
+              </span>
+              <span className="text-sm text-muted-foreground">forever</span>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              No card, no trial clock. Stay as long as you like.
+            </p>
           </div>
 
           <ul className="mt-8 mb-10 space-y-3">
-            {p.features.map((f) => (
-              <li
-                key={f}
-                className={`flex items-start gap-3 text-base ${p.featured ? "text-primary-foreground/90" : "text-primary"
-                  }`}
-              >
+            {BASIC_FEATURES.map((f) => (
+              <li key={f} className="flex items-start gap-3 text-base text-primary">
                 <Check className="mt-1 h-4 w-4 shrink-0 text-accent" aria-hidden />
                 <span>{f}</span>
               </li>
             ))}
           </ul>
 
-          {p.paid ? (
-            <PremiumCheckoutButton label={p.cta} featured={p.featured} />
-          ) : (
-            <Link to="/signup" className={`mt-auto ${ctaClass(p.featured)}`}>
-              {p.cta}
-            </Link>
-          )}
+          <Link to="/signup" className={`mt-auto ${ctaClass(false)}`}>
+            Start for free
+          </Link>
         </div>
-      ))}
+
+        {/* Premium */}
+        <div className="relative flex flex-col overflow-hidden rounded-2xl bg-gradient-forest text-primary-foreground p-8 lg:p-10 shadow-elite">
+          {/* Texture over the gradient — the flat fill reads as a block of ink
+              at this size, and the grain gives it a printed surface. */}
+          <span aria-hidden className="pointer-events-none absolute inset-0 grain opacity-40" />
+
+          <div className="relative flex flex-1 flex-col">
+            <span className="absolute right-0 top-0 rounded-full bg-accent px-3 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-accent-foreground">
+              Most popular
+            </span>
+
+            <h3 className="text-2xl font-semibold">Premium</h3>
+            <p className="mt-2 max-w-[22rem] text-sm leading-relaxed text-primary-foreground/70">
+              For researchers running several projects at once, with a team beside them.
+            </p>
+
+            <div className="mt-8">
+              <PremiumPrice billing={billing} />
+            </div>
+
+            <ul className="mt-8 mb-10 space-y-3">
+              {PREMIUM_FEATURES.map((f) => (
+                <li
+                  key={f}
+                  className="flex items-start gap-3 text-base text-primary-foreground/90"
+                >
+                  <Check className="mt-1 h-4 w-4 shrink-0 text-accent" aria-hidden />
+                  <span>{f}</span>
+                </li>
+              ))}
+            </ul>
+
+            <PremiumCheckoutButton label="Get Premium" featured planId={premium.planId} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -215,7 +253,7 @@ export function PlanGrid({ className = "" }: { className?: string }) {
 /** The pricing block on the landing page. /pricing is the page-sized version. */
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-background py-20 lg:py-28">
+    <section id="pricing" className="scroll-mt-[68px] bg-background py-20 lg:py-28">
       <div className="container">
         <p className="label-eyebrow text-accent">Pricing</p>
         <h2 className="mt-4 display-lg max-w-2xl text-primary">

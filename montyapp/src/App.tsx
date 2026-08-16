@@ -14,6 +14,7 @@ import ResetPassword from "./pages/ResetPassword";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import { GoogleReturnGate } from "@/components/auth/GoogleReturnGate";
+import { ScrollToTop } from "@/components/layout/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        {/* Every route starts at the top; react-router keeps the old scroll
+            position otherwise. Above the routes so it covers all of them. */}
+        <ScrollToTop />
         {/* Above the routes: a Google return has to be caught wherever Supabase
             drops it, not only on the page it was aimed at. */}
         <GoogleReturnGate>
