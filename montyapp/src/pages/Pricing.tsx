@@ -121,20 +121,38 @@ function ComparisonValue({ value, muted }: { value: string | boolean; muted?: bo
 const Pricing = () => {
   return (
     <Layout>
-      <section className="bg-paper py-20 lg:py-28">
+      {/* The hook. Centred rather than left-aligned like the rest of the site:
+          this is the one page people arrive at to make a decision, and the
+          heading, the toggle and the cards all reading down one axis is what
+          keeps the eye moving to the buttons. Top padding is deliberately
+          light — the plans should be reachable without scrolling. */}
+      <section className="bg-paper pt-10 pb-16 lg:pt-14 lg:pb-20">
         <div className="container">
-          <p className="label-eyebrow text-accent">Pricing</p>
-          <h1 className="mt-4 display-lg max-w-3xl text-primary">
-            Spending on Academics {"   "}
-            <span className="font-script text-accent text-[1.15em]">is never a waste.</span>
-          </h1>
-          <p className="mt-6 body-lg max-w-xl text-muted-foreground">
-            Start with Free. Upgrade when you realise.
-          </p>
+          <div className="text-center">
+            <p className="label-eyebrow text-accent">Pricing</p>
 
-          <PlanGrid className="mt-14" />
+            {/*
+              One line, which is what makes it read as a phrase rather than a
+              stack. Measured: this string needs 16.73px of width for every 1px
+              of font size (Fraunces + Caveat at 1.15em, this tracking), and the
+              container gives min(vw,1400) − 64. 5.2vw is the largest round
+              coefficient that still clears that at every width from 768px up —
+              5.6 overflows between 768 and ~1000. Below md it wraps instead,
+              which is better than shrinking into illegibility on a phone.
+            */}
+            <h1 className="mt-4 font-display font-semibold leading-[1.05] tracking-[-0.025em] text-primary text-[clamp(1.75rem,7vw,2.5rem)] md:whitespace-nowrap md:text-[clamp(2rem,5.2vw,3.4rem)]">
+              Spending on Academics{" "}
+              <span className="font-script text-accent text-[1.15em]">is never a waste.</span>
+            </h1>
 
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+            <p className="mt-4 body-lg text-muted-foreground">
+              Start with Free. Upgrade when you realise.
+            </p>
+          </div>
+
+          <PlanGrid className="mt-8" />
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-accent" aria-hidden />
             <span>Secured by Razorpay</span>
             <span aria-hidden className="text-border">·</span>
@@ -152,9 +170,11 @@ const Pricing = () => {
             What changes when you upgrade.
           </h2>
 
-          {/* Narrow screens scroll this rather than crushing three columns. */}
+          {/* Narrow screens scroll this rather than crushing three columns.
+              Capped width on wide ones: stretched to the full container, the
+              tick columns end up a screen away from the row they belong to. */}
           <div className="mt-12 overflow-x-auto">
-            <table className="w-full min-w-[34rem] border-collapse text-left">
+            <table className="w-full min-w-[34rem] max-w-5xl border-collapse text-left">
               <caption className="sr-only">Basic and Premium features compared</caption>
               <thead>
                 <tr className="border-b border-border">

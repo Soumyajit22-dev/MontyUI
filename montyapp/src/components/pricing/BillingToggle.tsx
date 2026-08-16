@@ -22,7 +22,7 @@ interface BillingToggleProps {
  */
 export function BillingToggle({ value, onChange, className = "" }: BillingToggleProps) {
   return (
-    <div className={`flex justify-center ${className}`}>
+    <div className={`flex ${className}`}>
       <ToggleGroup
         type="single"
         value={value}
