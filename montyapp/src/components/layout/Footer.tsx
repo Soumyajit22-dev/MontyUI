@@ -73,9 +73,22 @@ export function Footer() {
           </div>
         </div>
 
-        <p className="mt-14 border-t border-primary-foreground/15 pt-6 text-xs text-primary-foreground/50">
-          © {new Date().getFullYear()} CitePark. All rights reserved.
-        </p>
+        {/* Legal sits on the bottom bar rather than in a column of its own —
+            it is where people look for it, and a fourth column would not fit
+            the twelve the grid above already spends. */}
+        <div className="mt-14 flex flex-col gap-4 border-t border-primary-foreground/15 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-xs text-primary-foreground/50">
+            © {new Date().getFullYear()} CitePark. All rights reserved.
+          </p>
+          <div className="flex items-center gap-5 text-xs text-primary-foreground/50">
+            <Link to="/privacy" className="hover:text-accent transition-colors">
+              Privacy Policy
+            </Link>
+            <Link to="/terms" className="hover:text-accent transition-colors">
+              Terms &amp; Conditions
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );

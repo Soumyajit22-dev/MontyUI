@@ -145,6 +145,68 @@
   .body-lg {
     @apply text-base md:text-lg leading-relaxed;
   }
+
+  /*
+    Long-form legal copy — /privacy and /terms.
+
+    Styled by element rather than by class on every tag: those two documents are
+    a few hundred paragraphs between them, and prose that has to carry six
+    utility classes per <p> stops being editable by whoever has to update a
+    clause. Scoped to .legal-prose so nothing else on the site inherits it.
+
+    Slightly smaller than body copy and set to a measure that stops well short
+    of the column — legal text is read line by line, and a 90-character line is
+    where the eye starts losing its place on the return sweep.
+  */
+  .legal-prose {
+    @apply max-w-[68ch] text-[0.95rem] leading-[1.75] text-muted-foreground;
+  }
+
+  .legal-prose > * + * {
+    @apply mt-4;
+  }
+
+  .legal-prose h3 {
+    @apply mt-9 text-lg font-semibold tracking-[-0.01em] text-primary;
+  }
+
+  .legal-prose strong {
+    @apply font-semibold text-primary;
+  }
+
+  .legal-prose a {
+    @apply text-accent underline decoration-accent/40 underline-offset-4 transition-colors hover:decoration-accent;
+  }
+
+  .legal-prose code {
+    @apply rounded bg-secondary px-1.5 py-0.5 font-mono text-[0.85em] text-primary;
+  }
+
+  .legal-prose ul {
+    @apply space-y-2.5 pl-5;
+  }
+
+  .legal-prose li {
+    @apply list-disc marker:text-accent/60;
+  }
+
+  /* Sub-processors and data-retention read as tables and nothing else does;
+     narrow screens scroll them rather than crushing the columns. */
+  .legal-prose .legal-table {
+    @apply -mx-1 overflow-x-auto;
+  }
+
+  .legal-prose table {
+    @apply w-full min-w-[30rem] border-collapse text-left text-sm;
+  }
+
+  .legal-prose th {
+    @apply border-b border-border pb-3 pr-6 align-top font-semibold text-primary;
+  }
+
+  .legal-prose td {
+    @apply border-b border-border/60 py-3 pr-6 align-top;
+  }
 }
 
 @layer utilities {

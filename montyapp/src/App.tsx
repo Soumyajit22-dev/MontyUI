@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import Pricing from "./pages/Pricing";
 import PremiumSuccess from "./pages/PremiumSuccess";
 import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import SignUp from "./pages/SignUp";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -35,6 +37,8 @@ const App = () => (
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/premium/success" element={<PremiumSuccess />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />

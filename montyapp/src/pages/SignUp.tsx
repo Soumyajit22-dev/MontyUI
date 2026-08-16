@@ -244,6 +244,22 @@ const SignUp = () => {
             </>
           )}
         </button>
+
+        {/* Notice rather than a checkbox: the Google button above signs people
+            up too, and it cannot be gated on a control this form owns — so a
+            tick here would mean one route consented and the other did not.
+            Placed under the button because that is the moment of agreement. */}
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          By creating an account you agree to our{" "}
+          <Link to="/terms" className="text-accent underline underline-offset-4">
+            Terms &amp; Conditions
+          </Link>{" "}
+          and{" "}
+          <Link to="/privacy" className="text-accent underline underline-offset-4">
+            Privacy Policy
+          </Link>
+          .
+        </p>
       </form>
     </AuthShell>
   );
