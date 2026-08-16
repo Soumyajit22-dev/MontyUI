@@ -1,6 +1,6 @@
 import { AuthError, type User } from "@supabase/supabase-js";
 import { APP_URL, supabase } from "./supabase";
-import { clearSharedSession } from "./sso";
+import { clearSharedSession, sharedSessionReady } from "./sso";
 
 /** Signup either lands the user straight in, or parks them until they confirm their email. */
 export type SignUpOutcome = "active" | "needs-confirmation";
@@ -389,6 +389,24 @@ export async function updatePassword(password: string): Promise<void> {
 export async function getSessionUser(): Promise<User | null> {
   const { data } = await supabase.auth.getSession();
   return data.session?.user ?? null;
+}
+
+/**
+ * The signed-in user, but only after the shared-cookie handoff has had its
+ * chance to land.
+ *
+ * {@link getSessionUser} reads localStorage alone, and localStorage is empty on
+ * a visitor who arrived from app.citepark.com with their session still sitting
+ * in the cookie waiting to be adopted — see ./sso.ts. "No user" there means
+ * "not yet", not "signed out", and anything that would answer it by putting a
+ * sign-in form on screen has to wait for the reconcile to settle first.
+ *
+ * A reconcile that fails is not an error here: it leaves the visitor exactly as
+ * signed in as they already were, which is what the read below reports.
+ */
+export async function getReconciledSessionUser(): Promise<User | null> {
+  await sharedSessionReady().catch(() => undefined);
+  return getSessionUser();
 }
 
 export async function signOut(): Promise<void> {

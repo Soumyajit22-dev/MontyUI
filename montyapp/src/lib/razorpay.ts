@@ -1,5 +1,5 @@
 import { FunctionsHttpError } from "@supabase/supabase-js";
-import { getSessionUser } from "./auth";
+import { getReconciledSessionUser } from "./auth";
 import { supabase } from "./supabase";
 
 const CHECKOUT_SCRIPT_SRC = "https://checkout.razorpay.com/v1/checkout.js";
@@ -107,10 +107,12 @@ async function invokeFunction<T>(name: string, body: Record<string, unknown>): P
  * the payment fails or cannot be verified.
  *
  * A session is required. Both functions refuse an anonymous caller anyway, but
- * failing here keeps the visitor out of a modal they cannot complete.
+ * failing here keeps the visitor out of a modal they cannot complete. The read
+ * waits on the shared-cookie reconcile so that someone who arrived signed in
+ * from the product app is not told to sign in again.
  */
 export async function startCheckout(plan: PlanId): Promise<CheckoutOutcome> {
-  const user = await getSessionUser();
+  const user = await getReconciledSessionUser();
   if (!user) throw new Error("Please sign in before paying.");
 
   const [order] = await Promise.all([

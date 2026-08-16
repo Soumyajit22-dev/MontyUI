@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { SignInDialog } from "@/components/auth/SignInDialog";
-import { getSessionUser } from "@/lib/auth";
+import { getReconciledSessionUser } from "@/lib/auth";
 import { PREMIUM_SUCCESS_PATH, rememberPurchase } from "@/lib/premium";
 import { checkoutErrorMessage, startCheckout } from "@/lib/razorpay";
 
@@ -63,7 +63,6 @@ function PremiumCheckoutButton({ label, featured }: { label: string; featured: b
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [signInOpen, setSignInOpen] = useState(false);
-  const [signedInAs, setSignedInAs] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const runCheckout = async () => {
@@ -86,12 +85,25 @@ function PremiumCheckoutButton({ label, featured }: { label: string; featured: b
     }
   };
 
-  // The gate opens either way: signed out it asks for credentials, signed in it
-  // shows which account is about to be charged.
+  // Someone already signed in has nothing left to prove: they identified the
+  // account when they signed in, and it is the one the charge lands on. The
+  // gate is for a visitor this site does not recognise yet.
+  //
+  // The button goes into its pending state before the check, not after: the
+  // read waits on the shared-cookie reconcile, which can take a moment on a
+  // visitor arriving from the product app.
   const pay = async () => {
     setError(null);
-    const user = await getSessionUser();
-    setSignedInAs(user?.email ?? null);
+    setPending(true);
+
+    const user = await getReconciledSessionUser();
+    if (user) {
+      // runCheckout owns `pending` from here — it is the same spinner.
+      await runCheckout();
+      return;
+    }
+
+    setPending(false);
     setSignInOpen(true);
   };
 
@@ -120,7 +132,6 @@ function PremiumCheckoutButton({ label, featured }: { label: string; featured: b
         open={signInOpen}
         onOpenChange={setSignInOpen}
         onContinue={runCheckout}
-        signedInAs={signedInAs}
         purpose="go Premium"
       />
     </div>
