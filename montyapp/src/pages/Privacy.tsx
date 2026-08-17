@@ -106,7 +106,7 @@ const sections: LegalSection[] = [
             <strong>Payment records.</strong> When you buy Premium we store the Razorpay order and
             payment identifiers, the plan and billing period you chose, and the date your access
             runs to. <strong>We never receive or store your card number, CVV, UPI PIN or bank
-            credentials</strong> — those are entered on Razorpay's checkout and stay with
+              credentials</strong> — those are entered on Razorpay's checkout and stay with
             Razorpay.
           </li>
           <li>
@@ -239,7 +239,7 @@ const sections: LegalSection[] = [
     body: (
       <>
         <p>
-          Drafting, editing, literature validation and diagram generation work by sending the
+          Drafting, editing, Unlimited LaTex document and diagram creation and diagram generation work by sending the
           relevant part of your document, prompt or reference list to an AI model provider, which
           returns the result. This is the only way those features can work, and it happens only for
           the request you made.

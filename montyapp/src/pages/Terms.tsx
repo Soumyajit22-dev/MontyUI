@@ -106,8 +106,8 @@ const sections: LegalSection[] = [
       <>
         <p>
           <strong>Basic</strong> is free and stays free. It includes one active project, the LaTeX
-          editor in both code and visual modes, AI drafting and edits, literature validation, and
-          community support. No card is required, ever, to use it.
+          editor in both code and visual modes, 2 Free AI assistant query session, Unlimited LaTex document and diagram creation, and
+          Free Reference management. No card is required, ever, to use it.
         </p>
         <p>
           <strong>Premium</strong> is paid and adds unlimited projects, diagram generation (TikZ

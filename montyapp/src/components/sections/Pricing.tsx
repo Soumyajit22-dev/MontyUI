@@ -331,7 +331,7 @@ export function Pricing() {
               </span>
             </>
           }
-          lede="One project, the full LaTeX editor, AI drafting and literature validation cost nothing — no trial clock. Premium is for the point where you are running several projects with a group beside you."
+          lede="One project, the full LaTeX editor, AI drafting and Unlimited LaTex document and diagram creation cost nothing — no trial clock. Premium is for the point where you are running several projects with a group beside you."
         />
 
         <PlanGrid className="mt-14" align="left" />

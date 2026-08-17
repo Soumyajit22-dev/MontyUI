@@ -70,18 +70,24 @@ export function isBillingPeriod(value: unknown): value is BillingPeriod {
  * from the other.
  */
 export const BASIC_FEATURES = [
-  "1 active project",
-  "LaTeX editor — code and visual",
-  "AI drafting and edits",
-  "Literature validation",
-  "Community support",
+  "Unlimited Project",
+  "Citepark validator - 2 Free research validation run",
+  "Citepark assistant - 2 Free AI assistant query session",
+  "Citepark editor - Free LaTex document and diagram creation",
+  "Citepark management - Free Reference management",
+  "Limited AI notes and guidance creation",
+  "Community support"
 ];
 
 export const PREMIUM_FEATURES = [
-  "Unlimited projects",
-  "Diagrams on demand — TikZ & draw.io",
-  "Results, datasets and figure tracking",
-  "Team workspaces and activity",
+  "Unlimited Project",
+  "Citepark validator - Unlimited research validation run",
+  "Citepark assistant - Unlimited AI assistant query session",
+  "Citepark editor - Unlimited LaTex document and diagram creation",
+  "Citepark management - Unlimited Reference management",
+  "Unlimited Diagrams on demand — TikZ & draw.io",
+  "Unlimited AI notes creation",
+  "Export documents support",
   "Version history across documents",
   "Priority support",
 ];

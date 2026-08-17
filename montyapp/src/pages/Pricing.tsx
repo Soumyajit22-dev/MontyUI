@@ -43,27 +43,23 @@ const comparison: {
     {
       group: "Projects",
       rows: [
-        { label: "Active projects", basic: "1", premium: "Unlimited" },
-        { label: "LaTeX editor — code and visual", basic: true, premium: true },
+        { label: "Active projects", basic: "Unlimited", premium: "Unlimited" },
+        { label: "Research Validations", basic: "2 Free", premium: "Unlimited" },
+        { label: "Citepark AI assistant for editor", basic: "2 session Free", premium: "Unlimited" },
         { label: "Version history across documents", basic: false, premium: true },
+        { label: "Support", basic: "Community", premium: "Priority" }
       ],
     },
     {
       group: "Writing and research",
       rows: [
-        { label: "AI drafting and edits", basic: true, premium: true },
-        { label: "Literature validation", basic: true, premium: true },
+        { label: "Reference management", basic: "Free", premium: "Unlimited with advanced DOI matching" },
+        { label: "Unlimited LaTex document and diagram creation", basic: true, premium: true },
         { label: "Diagrams on demand — TikZ & draw.io", basic: false, premium: true },
-        { label: "Results, datasets and figure tracking", basic: false, premium: true },
+        { label: "Export Documents", basic: false, premium: true },
+        { label: "AI notes", basic: false, premium: true },
       ],
-    },
-    {
-      group: "Working together",
-      rows: [
-        { label: "Team workspaces and activity", basic: false, premium: true },
-        { label: "Support", basic: "Community", premium: "Priority" },
-      ],
-    },
+    }
   ];
 
 const faqs = [

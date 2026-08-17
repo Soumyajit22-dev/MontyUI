@@ -150,7 +150,7 @@ export function Hero() {
           </h1>
 
           <p className="mx-auto mt-7 max-w-2xl body-lg text-muted-foreground">
-            CitePark tells you whether an idea is worth the semester, writes the LaTeX beside
+            CitePark tells you whether an research idea is worth the semester, writes the LaTeX beside
             you, and keeps every reference, figure and result in one tracked workspace.
           </p>
 
