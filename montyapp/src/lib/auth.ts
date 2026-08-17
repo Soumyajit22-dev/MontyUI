@@ -1,9 +1,42 @@
 import { AuthError, type User } from "@supabase/supabase-js";
 import { APP_URL, supabase } from "./supabase";
+import { LEGAL_UPDATED } from "./legal";
 import { clearSharedSession, sharedSessionReady } from "./sso";
 
 /** Signup either lands the user straight in, or parks them until they confirm their email. */
 export type SignUpOutcome = "active" | "needs-confirmation";
+
+/**
+ * What the consent tick on /signup leaves behind on the account.
+ *
+ * A checkbox nobody records is a checkbox that proves nothing: the question a
+ * refund dispute or a privacy complaint actually asks is *which* terms were
+ * agreed to and *when*, and neither survives a page that only gates a button.
+ * So both signup routes stamp the moment, and the version of the documents in
+ * force at that moment — LEGAL_UPDATED, which moves whenever their substance
+ * does. Someone who signed up under an older version is identifiable by it.
+ *
+ * This is user_metadata, which the account holder can write to. That makes it a
+ * record rather than a proof, and it is the right trade at this size — the
+ * tamper-proof version wants a server-side table, and can read this one as its
+ * starting point.
+ */
+export function termsConsentMetadata(acceptedAt: string): Record<string, string> {
+  return { terms_accepted_at: acceptedAt, terms_version: LEGAL_UPDATED };
+}
+
+/**
+ * Stamps consent on an account that already exists — the Google route, where
+ * the user is created by the redirect rather than by a call from this page.
+ *
+ * Never fatal. The visitor ticked the box and Google signed them in; failing
+ * the sign-in over a metadata write would be a worse outcome than a missing
+ * timestamp, so this reports and moves on.
+ */
+export async function recordTermsConsent(acceptedAt: string): Promise<void> {
+  const { error } = await supabase.auth.updateUser({ data: termsConsentMetadata(acceptedAt) });
+  if (error) console.warn("Could not record terms consent:", error.message);
+}
 
 /**
  * Supabase surfaces most failures as terse machine strings. Translate the ones a
@@ -53,13 +86,15 @@ export function authErrorMessage(error: unknown): string {
 export async function signUpWithPassword(
   email: string,
   password: string,
-  fullName: string
+  fullName: string,
+  /** When the visitor ticked the consent box, ISO-8601. */
+  consentedAt: string
 ): Promise<SignUpOutcome> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { full_name: fullName },
+      data: { full_name: fullName, ...termsConsentMetadata(consentedAt) },
       // The confirmation link drops them on the product app, not back here.
       // Its root is the sign-in surface; `/login` is not a route over there.
       emailRedirectTo: `${APP_URL}/`,
@@ -208,11 +243,24 @@ interface GoogleOptions {
   /** A path on this site to return to, for a visitor mid-purchase. */
   next?: string;
   intent?: GoogleIntent;
+  /**
+   * When the consent box was ticked, ISO-8601, for the sign-up route. Absent on
+   * /login, where nobody is agreeing to anything they have not agreed to before.
+   */
+  consentedAt?: string;
 }
 
 interface PendingGoogle {
   intent: GoogleIntent | null;
   next: string | null;
+  /**
+   * Consent cannot ride in the callback URL: it would be a claim the browser
+   * makes about itself, editable by anyone who reads the address bar. It cannot
+   * be written to the account either, because on this route the account does
+   * not exist until Google returns. sessionStorage holds it for the round trip
+   * and the return gate writes it to the user it finds.
+   */
+  consentedAt: string | null;
 }
 
 const PENDING_KEY = "citepark.google-attempt";
@@ -244,6 +292,7 @@ export function takeGoogleAttempt(): PendingGoogle | null {
     return {
       intent: parsed.intent === "signup" || parsed.intent === "signin" ? parsed.intent : null,
       next: safeNext(parsed.next ?? null),
+      consentedAt: typeof parsed.consentedAt === "string" ? parsed.consentedAt : null,
     };
   } catch {
     return null;
@@ -283,13 +332,21 @@ export function urlHasSignInCredentials(): boolean {
  * Hands the visitor to Google's account chooser. Returns only if the redirect
  * failed to start — on success the browser has already left the page.
  */
-export async function signInWithGoogle({ next, intent }: GoogleOptions = {}): Promise<void> {
+export async function signInWithGoogle({
+  next,
+  intent,
+  consentedAt,
+}: GoogleOptions = {}): Promise<void> {
   const callback = new URL(OAUTH_CALLBACK_PATH, window.location.origin);
   const target = safeNext(next ?? null);
   if (target) callback.searchParams.set("next", target);
   if (intent) callback.searchParams.set("intent", intent);
 
-  rememberGoogleAttempt({ intent: intent ?? null, next: target });
+  rememberGoogleAttempt({
+    intent: intent ?? null,
+    next: target,
+    consentedAt: consentedAt ?? null,
+  });
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",

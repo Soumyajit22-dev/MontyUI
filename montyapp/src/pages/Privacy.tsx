@@ -7,7 +7,7 @@ import {
   GRIEVANCE_RESPONSE_DAYS,
   LEGAL_ADDRESS,
   LEGAL_EMAIL,
-  LEGAL_ENTITY,
+  LEGAL_OPERATOR,
   LEGAL_UPDATED,
   SITE_HOST,
 } from "@/lib/legal";
@@ -22,7 +22,7 @@ const mailto = <a href={`mailto:${LEGAL_EMAIL}`}>{LEGAL_EMAIL}</a>;
  * the SSO cookie in lib/sso.ts, the columns verify-payment writes, the fields
  * create-order stamps on an order. That is the point: a privacy policy
  * describing a system that does not exist is worse than none, because it is a
- * statement the company can be held to and cannot honour.
+ * statement the operator can be held to and cannot honour.
  *
  * Which means it goes stale the moment the product does. Anything that changes
  * what is collected, who it is shared with, or how long it is kept needs the
@@ -40,16 +40,35 @@ const sections: LegalSection[] = [
           experiments, references, figures and drafts behind a paper in one place.
         </p>
         <p>
-          The service is operated by <strong><Fill value={LEGAL_ENTITY} /></strong>, registered
-          at <Fill value={LEGAL_ADDRESS} /> ("CitePark", "we", "us"). Under India's Digital
-          Personal Data Protection Act, 2023 we are the <strong>data fiduciary</strong> for the
-          personal data described here — we decide why and how it is processed, and we are
-          answerable for it.
+          CitePark is run by an individual, not a company. It is operated by{" "}
+          <strong><Fill value={LEGAL_OPERATOR} /></strong>, based in India and contactable at{" "}
+          <Fill value={LEGAL_ADDRESS} />, trading as "CitePark" ("we", "us"). No company has been
+          incorporated for it yet, and we would rather tell you that than borrow the language of
+          one.
+        </p>
+        <p>
+          It changes nothing about your rights. Under India's Digital Personal Data Protection
+          Act, 2023 a data fiduciary is whoever decides why and how personal data is processed —
+          a person or a company alike — so the obligations in this policy are owed to you by the
+          named individual above, personally, and every right in{" "}
+          <a href="#your-rights">Your rights</a> can be exercised against them.
         </p>
         <p>
           This policy covers the marketing site at <code>{SITE_HOST}</code> and the product
           application at <code>{APP_HOST}</code>. They are one service on two hosts and share one
           account system, so one policy governs both.
+        </p>
+
+        <h3>If CitePark becomes a company</h3>
+        <p>
+          We intend to incorporate. When that happens the new company takes over as data
+          fiduciary, and your data moves to it — which is a change you are entitled to know about
+          rather than discover. So: we will name the company on this page and tell you by email
+          before the handover, the new entity will be bound by this policy as it stands until you
+          are given notice of any change, and nothing about what we collect or who processes it
+          changes merely because the operator's legal form has. If you would rather not continue
+          with the new entity, you can close your account and have your data deleted under{" "}
+          <a href="#your-rights">Your rights</a>.
         </p>
       </>
     ),
@@ -302,8 +321,9 @@ const sections: LegalSection[] = [
             safety of our users or the public;
           </li>
           <li>
-            the business is merged, acquired or reorganised — in which case the acquirer is bound
-            by this policy, and you will be told before anything about it changes.
+            the business is incorporated, merged, acquired or reorganised — in which case the new
+            entity is bound by this policy, and you will be told before anything about it changes.
+            See <a href="#who-we-are">Who we are</a>.
           </li>
         </ul>
       </>
@@ -454,11 +474,12 @@ const sections: LegalSection[] = [
           For any question about this policy, or to exercise a right under it, write to {mailto}.
         </p>
         <p>
-          <strong>Grievance Officer:</strong> <Fill value={GRIEVANCE_OFFICER} />
+          <strong>Grievance Officer:</strong> <Fill value={GRIEVANCE_OFFICER} /> — the operator of
+          CitePark, who answers these personally
           <br />
           <strong>Email:</strong> {mailto}
           <br />
-          <strong>Address:</strong> <Fill value={LEGAL_ENTITY} />, <Fill value={LEGAL_ADDRESS} />
+          <strong>Address:</strong> <Fill value={LEGAL_ADDRESS} />
         </p>
         <p>
           Complaints are acknowledged promptly and resolved within {GRIEVANCE_RESPONSE_DAYS} days.

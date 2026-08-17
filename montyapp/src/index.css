@@ -146,6 +146,64 @@
     @apply text-base md:text-lg leading-relaxed;
   }
 
+  /* The lede under a section heading — one size down from body-lg, set to a
+     measure that stops short of the column so it reads as a subtitle rather
+     than as the first paragraph of the section. */
+  .lede {
+    @apply text-base md:text-[1.0625rem] leading-relaxed text-muted-foreground;
+  }
+
+  /*
+    Buttons.
+
+    The two calls to action on the landing page were being rebuilt from raw
+    utilities in every section, which is how "Get access" ended up three
+    different sizes. One definition each, so the primary action looks identical
+    wherever a visitor meets it.
+  */
+  .cta-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-primary px-7 py-4 text-sm font-semibold text-primary-foreground shadow-soft transition-colors hover:bg-accent;
+  }
+
+  .cta-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-primary/25 px-7 py-4 text-sm font-semibold text-primary transition-colors hover:border-accent hover:text-accent;
+  }
+
+  /* The same pair on a forest-green section, where the fills invert. */
+  .cta-primary-inverse {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-accent px-7 py-4 text-sm font-semibold text-accent-foreground shadow-soft transition-colors hover:bg-ember-soft;
+  }
+
+  .cta-ghost-inverse {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border border-primary-foreground/25 px-7 py-4 text-sm font-semibold text-primary-foreground transition-colors hover:border-accent hover:text-accent;
+  }
+
+  /* A quiet inline "keep going" link, always trailing an arrow. Pair it with
+     `group` on the same element so the arrow can slide on hover — `group`
+     itself cannot be @applied, it only marks the element for its children. */
+  .link-arrow {
+    @apply inline-flex items-center gap-2 text-sm font-semibold text-accent;
+  }
+
+  .pill-badge {
+    @apply inline-flex items-center gap-2.5 rounded-full border border-border bg-paper/70 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-forest-soft backdrop-blur;
+  }
+
+  /* Format and integration names — BibTeX, arXiv, TikZ. */
+  .chip {
+    @apply rounded-full border border-border bg-background px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-primary;
+  }
+
+  /* A detail item under a screenshot: hairline above, title, body. Used by
+     every feature section so the grids below the captures share one rhythm. */
+  .detail-item {
+    @apply border-t border-border pt-5;
+  }
+
+  .detail-item-inverse {
+    @apply border-t border-primary-foreground/20 pt-5;
+  }
+
   /*
     Long-form legal copy — /privacy and /terms.
 
@@ -225,5 +283,46 @@
   .grain {
     background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1px);
     background-size: 4px 4px;
+  }
+
+  /*
+    The wash behind the hero. Two soft radials rather than a flat fill, so the
+    sand has some depth under the headline and the eye is pulled toward the
+    centre where the call to action sits. Sits under .grain, which gives it the
+    printed texture the rest of the page has.
+  */
+  .hero-glow {
+    background:
+      radial-gradient(58% 46% at 50% -6%, hsl(var(--accent) / 0.14), transparent 72%),
+      radial-gradient(46% 40% at 88% 18%, hsl(var(--forest-soft) / 0.16), transparent 72%),
+      radial-gradient(42% 38% at 8% 34%, hsl(var(--ember-soft) / 0.1), transparent 72%);
+  }
+
+  /*
+    Scroll-in for a block, driven by the data attribute `useReveal` sets. The
+    hidden state lives here rather than in React so a block is never briefly
+    drawn at full opacity before the effect runs — and so the whole thing is a
+    no-op for anyone who has asked for less motion.
+  */
+  .reveal {
+    opacity: 0;
+    transform: translateY(1.5rem);
+    transition:
+      opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal[data-revealed="true"] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
   }
 }

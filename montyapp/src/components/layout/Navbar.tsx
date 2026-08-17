@@ -4,12 +4,14 @@ import { cn } from "@/lib/utils";
 import { useSession } from "@/hooks/use-session";
 import { goToApp, signOut } from "@/lib/auth";
 
+// In the order the sections appear on the landing page, so the nav is a map of
+// the page rather than a second, different arrangement of it.
 const links = [
   { label: "How it works", href: "/#research" },
-  { label: "Editor", href: "/#editor" },
-  { label: "References", href: "/#references" },
   // Research validation is the product's own word for it — one entry, not two.
   { label: "Validate", href: "/#validate" },
+  { label: "Editor", href: "/#editor" },
+  { label: "Reference Management", href: "/#references" },
   { label: "Manage", href: "/#manage" },
   { label: "Pricing", href: "/pricing" },
 ];
@@ -94,10 +96,14 @@ export function Navbar() {
           citepark<span className="text-accent">.</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-8">
+        {/* Six links with "Reference Management" among them need about 930px
+            before the row starts running into the logo and the account buttons,
+            so the full nav waits for `lg` rather than colliding across the
+            tablet range. */}
+        <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
           {links.map((l) => {
             const className =
-              "text-sm font-medium text-primary/80 hover:text-accent transition-colors";
+              "whitespace-nowrap text-sm font-medium text-primary/80 hover:text-accent transition-colors";
             // Section links are anchors on the landing page; a page of its own
             // routes client-side instead of reloading the site.
             return l.href.includes("#") ? (

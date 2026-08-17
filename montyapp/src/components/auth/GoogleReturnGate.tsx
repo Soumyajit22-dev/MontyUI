@@ -10,6 +10,7 @@ import {
   goToApp,
   hasPendingGoogleAttempt,
   intentFromUrl,
+  recordTermsConsent,
   redirectTargetFromUrl,
   takeGoogleAttempt,
   urlHasSignInCredentials,
@@ -78,6 +79,13 @@ export function GoogleReturnGate({ children }: { children: ReactNode }) {
 
         const user = await getSessionUser();
         if (!active) return;
+
+        // The tick happened on /signup, before the browser left for Google;
+        // this is the first moment there is an account to write it to. Awaited
+        // so the stamp is on the user before they are handed to the app, and
+        // deliberately not guarded by `active` — the write should finish even
+        // if this component is on its way out.
+        if (attempt?.consentedAt) await recordTermsConsent(attempt.consentedAt);
 
         const destination = decideGoogleDestination(user, intent, next);
         if (destination) {

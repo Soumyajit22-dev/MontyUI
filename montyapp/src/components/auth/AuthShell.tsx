@@ -4,7 +4,8 @@ import { Link } from "react-router-dom";
 interface AuthShellProps {
   eyebrow: string;
   title: ReactNode;
-  intro: string;
+  /** Optional — a heading that needs no gloss is better left without one. */
+  intro?: string;
   children: ReactNode;
   footer: ReactNode;
 }
@@ -66,7 +67,9 @@ export function AuthShell({ eyebrow, title, intro, children, footer }: AuthShell
           <h1 className="mt-4 text-3xl md:text-4xl font-display font-semibold leading-[1.1] tracking-[-0.025em] text-primary">
             {title}
           </h1>
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{intro}</p>
+          {intro && (
+            <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{intro}</p>
+          )}
 
           <div className="mt-8">{children}</div>
 

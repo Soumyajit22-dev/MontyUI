@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { BillingToggle } from "@/components/pricing/BillingToggle";
+import { LineBreak, SectionHead } from "@/components/sections/kit";
 import { getReconciledSessionUser } from "@/lib/auth";
 import {
   ANNUAL_SAVING,
@@ -320,11 +321,18 @@ export function Pricing() {
   return (
     <section id="pricing" className="scroll-mt-[68px] bg-background py-20 lg:py-28">
       <div className="container">
-        <p className="label-eyebrow text-accent">Pricing</p>
-        <h2 className="mt-4 display-lg max-w-2xl text-primary">
-          Spending on Academics {"   "} <br />
-          <span className="font-script text-accent text-[1.15em]">is never a waste</span>
-        </h2>
+        <SectionHead
+          eyebrow="Pricing"
+          title={
+            <>
+              Start free. <LineBreak />
+              <span className="font-script text-accent text-[1.15em]">
+                Pay when the work grows.
+              </span>
+            </>
+          }
+          lede="One project, the full LaTeX editor, AI drafting and literature validation cost nothing — no trial clock. Premium is for the point where you are running several projects with a group beside you."
+        />
 
         <PlanGrid className="mt-14" align="left" />
 

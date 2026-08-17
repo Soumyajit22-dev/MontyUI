@@ -34,6 +34,27 @@ interface GoogleButtonProps {
   /** Completes "Continue with Google" — the label, minus the provider. */
   label?: string;
   disabled?: boolean;
+  /**
+   * Runs before the hand-off; return false to call it off.
+   *
+   * This is how /signup holds the button behind its consent tick. It has to be
+   * a veto rather than `disabled`, because a disabled button is a dead end — it
+   * cannot be clicked, so it cannot explain why, and the visitor is left
+   * hunting for what is wrong. Cancelling on click lets the caller point at the
+   * unticked box instead.
+   */
+  beforeStart?: () => boolean;
+  /**
+   * Record that this visitor agreed to the Terms and the Privacy Policy, as of
+   * the click. Set on the sign-up route, where `beforeStart` has just confirmed
+   * the tick; left off on /login, where nobody is being asked to agree to
+   * anything and a stamp would be an invention.
+   *
+   * Taken here rather than passed in, because the visitor may have had the page
+   * open for an hour — a timestamp computed while rendering would record when
+   * they arrived, not when they agreed.
+   */
+  stampConsent?: boolean;
 }
 
 /**
@@ -46,15 +67,25 @@ export function GoogleButton({
   intent,
   label = "Continue with Google",
   disabled = false,
+  beforeStart,
+  stampConsent = false,
 }: GoogleButtonProps) {
   const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const start = async () => {
+    // Checked before the spinner, or a cancelled attempt leaves the button
+    // saying it is taking them to Google when it is doing nothing of the sort.
+    if (beforeStart && !beforeStart()) return;
+
     setError(null);
     setLeaving(true);
     try {
-      await signInWithGoogle({ next, intent });
+      await signInWithGoogle({
+        next,
+        intent,
+        consentedAt: stampConsent ? new Date().toISOString() : undefined,
+      });
     } catch (err) {
       setError(authErrorMessage(err));
       setLeaving(false);

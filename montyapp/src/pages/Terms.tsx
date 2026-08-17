@@ -6,7 +6,7 @@ import {
   LEGAL_ADDRESS,
   LEGAL_CITY,
   LEGAL_EMAIL,
-  LEGAL_ENTITY,
+  LEGAL_OPERATOR,
   LEGAL_UPDATED,
   REFUND_WINDOW_DAYS,
   SITE_HOST,
@@ -37,9 +37,16 @@ const sections: LegalSection[] = [
       <>
         <p>
           These Terms and Conditions are the agreement between you and{" "}
-          <strong><Fill value={LEGAL_ENTITY} /></strong>, of <Fill value={LEGAL_ADDRESS} />
-          ("CitePark", "we", "us"), covering the site at <code>{SITE_HOST}</code>, the application
-          at <code>{APP_HOST}</code>, and everything either of them offers.
+          <strong><Fill value={LEGAL_OPERATOR} /></strong>, an individual based in India trading as
+          "CitePark", of <Fill value={LEGAL_ADDRESS} /> ("we", "us"). They cover the site at{" "}
+          <code>{SITE_HOST}</code>, the application at <code>{APP_HOST}</code>, and everything
+          either of them offers.
+        </p>
+        <p>
+          CitePark is not yet a registered company, and the contract is with the person named
+          above rather than an entity — which means they are personally bound by every promise on
+          this page, including the refund in <a href="#refunds">Refunds</a>. If that changes,{" "}
+          <a href="#general">General</a> says what happens to this agreement.
         </p>
         <p>
           By creating an account, buying Premium, or using CitePark at all, you accept these terms.
@@ -419,8 +426,14 @@ const sections: LegalSection[] = [
           These terms, together with the <Link to="/privacy">Privacy Policy</Link>, are the whole
           agreement between us. If a clause is found unenforceable, the rest stands. Our not
           enforcing something on one occasion does not waive it. You may not transfer your rights
-          under these terms without our consent; we may transfer ours in a merger or reorganisation
-          of the business.
+          under these terms without our consent.
+        </p>
+        <p>
+          We may transfer ours to a company incorporated to run CitePark, or in a later merger or
+          reorganisation of the business. If that happens, the new entity takes on this agreement
+          as it stands — your plan, your paid term and your refund rights carry over unchanged —
+          and you will be told before it does. What happens to your data at the same moment is set
+          out in the <Link to="/privacy#who-we-are">Privacy Policy</Link>.
         </p>
         <p>
           We may update these terms as the service changes. The date at the top moves when they do,
@@ -439,7 +452,7 @@ const sections: LegalSection[] = [
           Questions about these terms, a payment, or anything else — write to {mailto}.
         </p>
         <p>
-          <Fill value={LEGAL_ENTITY} />
+          <Fill value={LEGAL_OPERATOR} />, trading as CitePark
           <br />
           <Fill value={LEGAL_ADDRESS} />
         </p>
