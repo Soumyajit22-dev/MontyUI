@@ -70,7 +70,6 @@ export function isBillingPeriod(value: unknown): value is BillingPeriod {
  * from the other.
  */
 export const BASIC_FEATURES = [
-  "Unlimited Project",
   "Citepark validator - 2 Free research validation run",
   "Citepark assistant - 2 Free AI assistant query session",
   "Citepark editor - Free LaTex document and diagram creation",
